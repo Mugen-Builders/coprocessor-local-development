@@ -1,0 +1,19 @@
+# Get the input status.
+query getInputStatus($index: Int!) {
+  input(index: $index) {
+    status
+  }
+}
+
+query getNoticesByInputIndex($index: Int!) {
+  input(index: $index) {
+    notices {
+      edges {
+        node {
+          index
+          payload
+        }
+      }
+    }
+  }
+}
