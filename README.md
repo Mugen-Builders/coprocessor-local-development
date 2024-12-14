@@ -4,9 +4,6 @@
 </p>
 <br>
 <div align="center">
-    <i></i>
-</div>
-<div align="center">
 <b>This application aims to be a local solver option to improve the development environment for applications built for the Cartesi Coprocessor</b>
 </div>
 <br>
