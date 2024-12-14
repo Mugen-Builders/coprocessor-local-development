@@ -7,9 +7,11 @@ import (
 	"os"
 	"strings"
 	"time"
-	"github.com/henriquemarlon/coprocessor-local-solver/configs"
+
 	genqlient "github.com/Khan/genqlient/graphql"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/henriquemarlon/coprocessor-local-solver/configs"
 )
 
 type NodeReader struct {
@@ -35,16 +37,28 @@ func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][
 		return nil, err
 	}
 	outputs := make([][]byte, len(res.Input.Notices.Edges))
-	for _, edge := range res.Input.Notices.Edges {
-		noticeBytesPayload := common.Hex2Bytes(edge.Node.GetPayload())
-		outputs = append(outputs, noticeBytesPayload)
-		slog.Info("Received notice", "index", edge.Node.GetIndex(), "payload", edge.Node.GetPayload())
+
+	abiJSON := `[{"inputs":[{"internalType":"bytes","name":"payload","type":"bytes"}],"name":"Notice","outputs":[],"stateMutability":"nonpayable","type":"function"}]`
+
+	abiInterface, err := abi.JSON(strings.NewReader(abiJSON))
+	if err != nil {
+		slog.Error("Failed to parse ABI", "error", err)
+		os.Exit(1)
+	}
+
+	for i, edge := range res.Input.Notices.Edges {
+		payload, err := abiInterface.Pack("Notice", common.Hex2Bytes(edge.Node.Payload[2:]))
+		if err != nil {
+			return nil, err
+		}
+		outputs[i] = payload
+		slog.Info("Processing notice", "payload", payload)
 	}
 	return outputs, nil
 }
 
 func waitForInput(ctx context.Context, client genqlient.Client, index int) error {
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 	for {
 		result, err := getInputStatus(ctx, client, index)

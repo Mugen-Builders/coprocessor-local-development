@@ -80,12 +80,25 @@ func run() {
 				slog.Error("Failed to create Coprocessor instance", "error", err)
 				os.Exit(1)
 			}
-			instance.CoprocessorCallbackOutputsOnly(
+
+			if len(outputs) == 0 {
+				slog.Info("No outputs to process", "inputIndex", event.InputIndex)
+				continue
+			}
+
+			slog.Info("Calling CoprocessorCallerMock", "outputs", outputs)
+
+			tx, err := instance.CoprocessorCallbackOutputsOnly(
 				opts,
 				[32]byte{},
 				[32]byte{},
 				outputs,
 			)
+			if err != nil {
+				slog.Error("Failed to call CoprocessorCallbackOutputsOnly", "error", err)
+				os.Exit(1)
+			}
+			slog.Info("CoprocessorCallbackOutputsOnly called", "tx", tx.Hash().Hex())
 		case <-ctx.Done():
 			slog.Info("Context done, shutting down.")
 			return
