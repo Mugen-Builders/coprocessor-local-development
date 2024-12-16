@@ -17,8 +17,8 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:   "listen",
-	Short: "Listen for events and process execute outputs",
-	Long:  `This command listens for events from the input box and processes the notices associated with them.`,
+	Short: "listen for events and process execute outputs",
+	Long:  `this command listens for events from the input box and processes the notices associated with them.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		run()
 	},
@@ -27,38 +27,35 @@ var Cmd = &cobra.Command{
 func run() {
 	cfg, err := configs.LoadConfig()
 	if err != nil {
-		slog.Error("Failed to load configuration file", "error", err)
+		slog.Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
 
 	ethClient, opts, err := configs.SetupTransactor(cfg)
 	if err != nil {
-		slog.Error("Failed to setup transactor", "error", err)
+		slog.Error("failed to set up transactor", "error", err)
 		os.Exit(1)
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	gqlClient := genqlient.NewClient("http://127.0.0.1:8080/graphql", nil)
-
 	inputChan := make(chan rollups_contracts.IInputBoxInputAdded)
+
 	go func() {
 		ethClientWs, err := configs.SetupTransactorWS(cfg)
 		if err != nil {
-			slog.Error("Failed to setup transactor WS", "error", err)
+			slog.Error("failed to set up ws transactor", "error", err)
 			os.Exit(1)
 		}
-		reader, err := evm_reader.NewEVMReader(
-			ethClientWs,
-			common.HexToAddress(cfg.INPUT_BOX_ADDRESS),
-		)
+		reader, err := evm_reader.NewEVMReader(ethClientWs, common.HexToAddress(cfg.INPUT_BOX_ADDRESS))
 		if err != nil {
-			slog.Error("Failed to create EVM Reader", "error", err)
+			slog.Error("failed to create evm reader", "error", err)
 			os.Exit(1)
 		}
-		err = reader.GetInputAddedEvents(inputChan)
-		if err != nil {
-			slog.Error("Failed to get 'InputAdded' events from IInputBox contract", "error", err)
+		if err := reader.GetInputAddedEvents(ctx, inputChan); err != nil {
+			slog.Error("error fetching inputadded events", "error", err)
 			os.Exit(1)
 		}
 	}()
@@ -66,41 +63,34 @@ func run() {
 	for {
 		select {
 		case event := <-inputChan:
-			reader := node_reader.NewNodeReader(gqlClient)
-			outputs, err := reader.GetNoticesByInputIndex(ctx, int(event.InputIndex.Int64()))
+			outputs, err := node_reader.NewNodeReader(gqlClient).GetNoticesByInputIndex(ctx, int(event.InputIndex.Int64()))
 			if err != nil {
-				slog.Error("Failed to get notices by input index", "error", err)
-				os.Exit(1)
-			}
-			instance, err := coprocessor_contracts.NewCoprocessorContracts(
-				common.HexToAddress(cfg.COPROCESSOR_CALLER_MOCK_ADDRESS),
-				ethClient,
-			)
-			if err != nil {
-				slog.Error("Failed to create Coprocessor instance", "error", err)
+				slog.Error("failed to get notices by input index", "error", err)
 				os.Exit(1)
 			}
 
 			if len(outputs) == 0 {
-				slog.Info("No outputs to process", "inputIndex", event.InputIndex)
+				slog.Info("no outputs to process", "inputIndex", event.InputIndex)
 				continue
 			}
 
-			slog.Info("Calling CoprocessorCallerMock", "outputs", outputs)
+			slog.Info("processing outputs", "inputIndex", event.InputIndex, "outputs", outputs)
 
-			tx, err := instance.CoprocessorCallbackOutputsOnly(
-				opts,
-				[32]byte{},
-				[32]byte{},
-				outputs,
-			)
+			instance, err := coprocessor_contracts.NewCoprocessorContracts(common.HexToAddress(cfg.COPROCESSOR_CALLER_MOCK_ADDRESS), ethClient)
 			if err != nil {
-				slog.Error("Failed to call CoprocessorCallbackOutputsOnly", "error", err)
+				slog.Error("failed to create coprocessor instance", "error", err)
 				os.Exit(1)
 			}
-			slog.Info("CoprocessorCallbackOutputsOnly called", "tx", tx.Hash().Hex())
+
+			tx, err := instance.CoprocessorCallbackOutputsOnly(opts, [32]byte{}, [32]byte{}, outputs)
+			if err != nil {
+				slog.Error("failed to call coprocessorcallbackoutputsonly", "error", err)
+				os.Exit(1)
+			}
+
+			slog.Info("output executed", "tx", tx.Hash().Hex(), "inputIndex", event.InputIndex)
 		case <-ctx.Done():
-			slog.Info("Context done, shutting down.")
+			slog.Info("shutting down due to canceled context")
 			return
 		}
 	}

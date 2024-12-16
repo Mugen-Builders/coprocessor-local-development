@@ -19,16 +19,16 @@ type NodeReader struct {
 }
 
 func NewNodeReader(client genqlient.Client) *NodeReader {
+	configs.ConfigureLog(slog.LevelInfo)
 	return &NodeReader{
 		Client: client,
 	}
 }
 
 func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][]byte, error) {
-	configs.ConfigureLog(slog.LevelInfo)
 	err := waitForInput(ctx, r.Client, index)
 	if err != nil {
-		slog.Error("Failed to wait for input", "error", err)
+		slog.Error("failed to wait for input", "error", err)
 		os.Exit(1)
 	}
 
@@ -42,7 +42,7 @@ func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][
 
 	abiInterface, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
-		slog.Error("Failed to parse ABI", "error", err)
+		slog.Error("failed to parse abi", "error", err)
 		os.Exit(1)
 	}
 
@@ -52,7 +52,6 @@ func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][
 			return nil, err
 		}
 		outputs[i] = payload
-		slog.Info("Processing notice", "payload", payload)
 	}
 	return outputs, nil
 }
