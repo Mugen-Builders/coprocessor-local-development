@@ -23,24 +23,19 @@
 ###  Prerequisites
 1. [Download and Install the latest version of Golang.](https://go.dev/doc/install)
 
-> [!CAUTION]
-> Before start the application, export `COPROCESSOR_CALLER_MOCK_ADDRESS` as a enviroment variable:
->
->   ```shell
->   ❯ export COPROCESSOR_CALLER_MOCK_ADDRESS=<contract-address>
->   ```
-
 ###  Running
 
 1. Build and generate excutable from source:
 
-   ```sh
-   ❯ go build -o app ./cmd 
-   ```
+```sh
+go build -o mugen ./cmd 
+```
    
+> [!WARNING]
+> Replace the argument below with the address of the previously deployed `CoprocessorCallerMock.sol`.
 
 2. Run application:
 
-   ```sh
-   ❯ ./app
-   ```
+```sh
+./mugen --coprocessor-caller-address <contract-address>
+```
