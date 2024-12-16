@@ -2,8 +2,10 @@ package root
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	genqlient "github.com/Khan/genqlient/graphql"
 	"github.com/ethereum/go-ethereum/common"
@@ -15,21 +17,43 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Cmd = &cobra.Command{
-	Use:   "listen",
-	Short: "listen for events and process execute outputs",
-	Long:  `this command listens for events from the input box and processes the notices associated with them.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		run()
-	},
-}
+var (
+	cfg                      *configs.CFG
+	coprocessorCallerAddress string
+	Cmd                      = &cobra.Command{
+		Use:   "mugen",
+		Short: "Mugen Builders tool for executing coprocessor outputs",
+		Long:  "This tool listens for input events, processes the associated notices, and executes them on-chain.",
+		Run: func(cmd *cobra.Command, args []string) {
+			cfg.COPROCESSOR_CALLER_MOCK_ADDRESS = coprocessorCallerAddress
+			run()
+		},
+	}
+)
 
-func run() {
-	cfg, err := configs.LoadConfig()
+var startupMessage = `
+Mugen Builders <> Cartesi Coprocessor local development tool started
+GraphQL polling pointing to GRAPHQL_URL
+CoprocessorCaller address MOCK_ADDRESS
+
+Press Ctrl+C to stop the application.
+`
+
+func init() {
+	var err error
+	cfg, err = configs.LoadConfig()
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
+	Cmd.Flags().StringVar(&coprocessorCallerAddress, "coprocessor-caller-address", "", "Address of the coprocessor caller")
+	Cmd.MarkFlagRequired("coprocessor-caller-address")
+}
+
+func run() {
+	message := strings.ReplaceAll(startupMessage, "GRAPHQL_URL", cfg.GRAPHQL_URL)
+	message = strings.ReplaceAll(message, "MOCK_ADDRESS", cfg.COPROCESSOR_CALLER_MOCK_ADDRESS)
+	fmt.Println(message)
 
 	ethClient, opts, err := configs.SetupTransactor(cfg)
 	if err != nil {
@@ -40,7 +64,7 @@ func run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	gqlClient := genqlient.NewClient("http://127.0.0.1:8080/graphql", nil)
+	gqlClient := genqlient.NewClient(cfg.GRAPHQL_URL, nil)
 	inputChan := make(chan rollups_contracts.IInputBoxInputAdded)
 
 	go func() {
