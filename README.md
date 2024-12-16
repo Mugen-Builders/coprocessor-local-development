@@ -23,12 +23,7 @@
 ###  Prerequisites
 1. [Download and Install the latest version of Golang.](https://go.dev/doc/install)
 
-2. Install development node:
-	```shell
-	❯ npm i -g nonodo
-	```
-
-> [!TIP]
+> [!CAUTION]
 > Before start the application, export `COPROCESSOR_CALLER_MOCK_ADDRESS` as a enviroment variable:
 >
 >   ```shell
@@ -37,20 +32,14 @@
 
 ###  Running
 
-1. Start nonodo in a separate terminal:
-
-   ```sh
-   ❯ nonodo
-   ```
-
-2. Build and generate excutable from source:
+1. Build and generate excutable from source:
 
    ```sh
    ❯ go build -o app ./cmd 
    ```
    
 
-3. Run application:
+2. Run application:
 
    ```sh
    ❯ ./app
