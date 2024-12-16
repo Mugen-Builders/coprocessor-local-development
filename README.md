@@ -4,7 +4,7 @@
 </p>
 <br>
 <div align="center">
-<b>This application aims to be a local option to improve the development environment for applications built for the Cartesi Coprocessor</b>
+<b>This application aims to be a local option to improve the development environment <br> for applications built for the Cartesi Coprocessor</b>
 </div>
 <br>
 <p align="center">
