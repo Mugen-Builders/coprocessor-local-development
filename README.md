@@ -32,7 +32,7 @@ go build -o mugen ./cmd
 ```
    
 > [!WARNING]
-> Replace the argument below with the address of the previously deployed `CoprocessorCallerMock.sol`.
+> Replace the argument of the flag `--coprocessor-caller-address` with the address of the previously deployed `CoprocessorCallerMock.sol`.
 
 2. Run application:
 
