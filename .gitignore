@@ -13,6 +13,7 @@
 *.so
 *.dylib
 solver
+mugen
 
 /tmp
 # Test binary, built with `go test -c`
