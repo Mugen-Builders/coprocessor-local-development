@@ -46,12 +46,12 @@
 2. Build and generate excutable from source:
 
    ```sh
-   ❯ go build -o solver ./cmd 
+   ❯ go build -o app ./cmd 
    ```
    
 
 3. Run application:
 
    ```sh
-   ❯ ./solver
+   ❯ ./app
    ```
