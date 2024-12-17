@@ -53,7 +53,7 @@ func (r *EVMReader) GetInputAddedEvents(ctx context.Context, out chan<- rollups_
 				if r.lastIndex.Cmp(event.InputIndex) < 0 {
 					r.lastIndex.Set(event.InputIndex)
 					out <- *event
-					slog.Info("new inputadded event sent to the channel", "dapp", event.Dapp, "index", event.InputIndex, "sender", event.Sender)
+					slog.Info("new input", "dapp", event.Dapp, "index", event.InputIndex, "sender", event.Sender)
 				}
 				r.mu.Unlock()
 			}
