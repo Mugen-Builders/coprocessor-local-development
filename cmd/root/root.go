@@ -89,38 +89,36 @@ func run() {
 
 	go func(ctx context.Context, gqlClient genqlient.Client, inputChan <-chan rollups_contracts.IInputBoxInputAdded, outputsChan chan<- [][]byte) {
 		for event := range inputChan {
-			outputs, err := node_reader.NewNodeReader(gqlClient).GetNoticesByInputIndex(ctx, int(event.InputIndex.Int64()))
+			var outputs [][]byte
+
+			notices, err := node_reader.NewNodeReader(gqlClient).GetNoticesByInputIndex(ctx, int(event.InputIndex.Int64()))
 			if err != nil {
 				slog.Error("failed to get notices by input index", "error", err)
-				continue
-			}
-			if len(outputs) > 0 {
-				outputsChan <- outputs
+			} else if len(notices) > 0 {
+				outputs = append(outputs, notices...)
 			} else {
 				slog.Warn("no notices to process", "inputIndex", event.InputIndex)
 			}
-		}
-	}(ctx, gqlClient, inputChan, outputChan)
 
-	go func(ctx context.Context, gqlClient genqlient.Client, inputChan <-chan rollups_contracts.IInputBoxInputAdded, outputsChan chan<- [][]byte) {
-		for event := range inputChan {
-			outputs, err := node_reader.NewNodeReader(gqlClient).GetVouchersByInputIndex(ctx, int(event.InputIndex.Int64()))
+			vouchers, err := node_reader.NewNodeReader(gqlClient).GetVouchersByInputIndex(ctx, int(event.InputIndex.Int64()))
 			if err != nil {
-				slog.Error("failed to get notices by input index", "error", err)
-				continue
-			}
-			if len(outputs) > 0 {
-				outputsChan <- outputs
+				slog.Error("failed to get vouchers by input index", "error", err)
+			} else if len(vouchers) > 0 {
+				outputs = append(outputs, vouchers...)
 			} else {
 				slog.Warn("no vouchers to process", "inputIndex", event.InputIndex)
+			}
+
+			if len(outputs) > 0 {
+				outputsChan <- outputs
 			}
 		}
 	}(ctx, gqlClient, inputChan, outputChan)
 
 	for {
 		select {
-		case notices := <-outputChan:
-			handleOutput(ethClient, opts, notices)
+		case outputs := <-outputChan:
+			handleOutput(ethClient, opts, outputs)
 		case <-ctx.Done():
 			slog.Info("shutting down due to canceled context")
 			return
@@ -136,8 +134,8 @@ func handleOutput(ethClient *ethclient.Client, opts *bind.TransactOpts, outputs 
 	}
 	tx, err := instance.CoprocessorCallbackOutputsOnly(opts, [32]byte{}, [32]byte{}, outputs)
 	if err != nil {
-		slog.Error("failed to call coprocessor callback function", "error", err)
+		slog.Error("failed to call coprocessor callback function", "error", err, "outputs", outputs)
 		return
 	}
-	slog.Info("notices executed", "tx", tx.Hash().Hex())
+	slog.Info("outputs executed", "tx", tx.Hash().Hex(), "outputs", outputs)
 }
