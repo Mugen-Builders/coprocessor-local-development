@@ -5,7 +5,7 @@ import (
 )
 
 type CFG struct {
-	GRAPHQL_URL					 string `mapstructure:"GRAPHQL_URL"`
+	GRAPHQL_URL                     string `mapstructure:"GRAPHQL_URL"`
 	RPC_URL_WS                      string `mapstructure:"RPC_URL_WS"`
 	PRIVATE_KEY                     string `mapstructure:"PRIVATE_KEY"`
 	RPC_URL_HTTP                    string `mapstructure:"RPC_URL_HTTP"`

@@ -17,3 +17,17 @@ query getNoticesByInputIndex($index: Int!) {
     }
   }
 }
+
+query getVouchersByInputIndex($index: Int!) {
+  input(index: $index) {
+    vouchers {
+      edges {
+        node {
+          index
+          destination
+          payload
+        }
+      }
+    }
+  }
+}

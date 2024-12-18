@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	genqlient "github.com/Khan/genqlient/graphql"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/henriquemarlon/coprocessor-local-solver/configs"
 	"github.com/henriquemarlon/coprocessor-local-solver/internal/evm_reader"
 	"github.com/henriquemarlon/coprocessor-local-solver/internal/node_reader"
@@ -33,7 +35,7 @@ var (
 
 var startupMessage = `
 Mugen Builders <> Cartesi Coprocessor local development tool started
-GraphQL polling pointing to GRAPHQL_URL
+GraphQL polling at GRAPHQL_URL
 CoprocessorCaller address MOCK_ADDRESS
 
 Press Ctrl+C to stop the application.
@@ -66,6 +68,7 @@ func run() {
 
 	gqlClient := genqlient.NewClient(cfg.GRAPHQL_URL, nil)
 	inputChan := make(chan rollups_contracts.IInputBoxInputAdded)
+	outputChan := make(chan [][]byte)
 
 	go func() {
 		ethClientWs, err := configs.SetupTransactorWS(cfg)
@@ -79,43 +82,62 @@ func run() {
 			os.Exit(1)
 		}
 		if err := reader.GetInputAddedEvents(ctx, inputChan); err != nil {
-			slog.Error("error fetching inputadded events", "error", err)
+			slog.Error("error fetching inputs", "error", err)
 			os.Exit(1)
 		}
 	}()
 
-	for {
-		select {
-		case event := <-inputChan:
+	go func(ctx context.Context, gqlClient genqlient.Client, inputChan <-chan rollups_contracts.IInputBoxInputAdded, outputsChan chan<- [][]byte) {
+		for event := range inputChan {
 			outputs, err := node_reader.NewNodeReader(gqlClient).GetNoticesByInputIndex(ctx, int(event.InputIndex.Int64()))
 			if err != nil {
 				slog.Error("failed to get notices by input index", "error", err)
-				os.Exit(1)
-			}
-
-			if len(outputs) == 0 {
-				slog.Info("no outputs to process", "inputIndex", event.InputIndex)
 				continue
 			}
-
-			slog.Info("processing outputs", "inputIndex", event.InputIndex, "outputs", outputs)
-
-			instance, err := coprocessor_contracts.NewCoprocessorContracts(common.HexToAddress(cfg.COPROCESSOR_CALLER_MOCK_ADDRESS), ethClient)
-			if err != nil {
-				slog.Error("failed to create coprocessor instance", "error", err)
-				os.Exit(1)
+			if len(outputs) > 0 {
+				outputsChan <- outputs
+			} else {
+				slog.Info("no notices to process", "inputIndex", event.InputIndex)
 			}
+		}
+	}(ctx, gqlClient, inputChan, outputChan)
 
-			tx, err := instance.CoprocessorCallbackOutputsOnly(opts, [32]byte{}, [32]byte{}, outputs)
+	go func(ctx context.Context, gqlClient genqlient.Client, inputChan <-chan rollups_contracts.IInputBoxInputAdded, outputsChan chan<- [][]byte) {
+		for event := range inputChan {
+			outputs, err := node_reader.NewNodeReader(gqlClient).GetVouchersByInputIndex(ctx, int(event.InputIndex.Int64()))
 			if err != nil {
-				slog.Error("failed to call coprocessorcallbackoutputsonly", "error", err)
-				os.Exit(1)
+				slog.Error("failed to get notices by input index", "error", err)
+				continue
 			}
+			if len(outputs) > 0 {
+				outputsChan <- outputs
+			} else {
+				slog.Info("no notices to process", "inputIndex", event.InputIndex)
+			}
+		}
+	}(ctx, gqlClient, inputChan, outputChan)
 
-			slog.Info("output executed", "tx", tx.Hash().Hex(), "inputIndex", event.InputIndex)
+	for {
+		select {
+		case notices := <-outputChan:
+			handleOutput(ethClient, opts, notices)
 		case <-ctx.Done():
 			slog.Info("shutting down due to canceled context")
 			return
 		}
 	}
+}
+
+func handleOutput(ethClient *ethclient.Client, opts *bind.TransactOpts, outputs [][]byte) {
+	instance, err := coprocessor_contracts.NewCoprocessorContracts(common.HexToAddress(cfg.COPROCESSOR_CALLER_MOCK_ADDRESS), ethClient)
+	if err != nil {
+		slog.Error("failed to create coprocessor instance", "error", err)
+		return
+	}
+	tx, err := instance.CoprocessorCallbackOutputsOnly(opts, [32]byte{}, [32]byte{}, outputs)
+	if err != nil {
+		slog.Error("failed to call coprocessor callback function", "error", err)
+		return
+	}
+	slog.Info("notices executed", "tx", tx.Hash().Hex())
 }
