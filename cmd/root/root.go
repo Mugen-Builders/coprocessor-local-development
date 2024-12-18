@@ -97,7 +97,7 @@ func run() {
 			if len(outputs) > 0 {
 				outputsChan <- outputs
 			} else {
-				slog.Info("no notices to process", "inputIndex", event.InputIndex)
+				slog.Warn("no notices to process", "inputIndex", event.InputIndex)
 			}
 		}
 	}(ctx, gqlClient, inputChan, outputChan)
@@ -112,7 +112,7 @@ func run() {
 			if len(outputs) > 0 {
 				outputsChan <- outputs
 			} else {
-				slog.Info("no notices to process", "inputIndex", event.InputIndex)
+				slog.Warn("no vouchers to process", "inputIndex", event.InputIndex)
 			}
 		}
 	}(ctx, gqlClient, inputChan, outputChan)
