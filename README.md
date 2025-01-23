@@ -23,16 +23,16 @@
 ## Overview
 
 <div align="justify">
-cartesi
+This is an iterative tool designed to accelerate the *debugging* and *development* process of applications using the coprocessor, providing a faster path to the production environment.
 </div>
 
 ##  Getting Started
 
 ###  Prerequisites
 
-1. 
-2. 
-3. 
+1. Foundry
+2. Golang
+3. Nonodo
 
 ###  Running
 
