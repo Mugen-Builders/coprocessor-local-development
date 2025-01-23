@@ -30,22 +30,9 @@ cartesi
 
 ###  Prerequisites
 
-1. [Install Docker Desktop for your operating system](https://www.docker.com/products/docker-desktop/).
-2. [MQTT Broker](https://www.hivemq.com/article/step-by-step-guide-using-hivemq-cloud-starter-iot/)
-3. [MongoDB Instance](https://www.mongodb.com/basics/clusters/mongodb-cluster-setup)
-
-> [!NOTE]
-> For a development environment, you can use the local infrastructure provided in this repository, which includes:
->
-> - **MQTT HiveMQ broker** with the Apache Kafka extension enabled.  
-> - **MongoDB instance** that will be populated with the data from the provided file.  
-> - Infrastructure for **Apache Kafka**.
-> 
-> To run this, simply clone this repository and execute the following command:
->
-> ```sh
-> make infra
-> ```
+1. 
+2. 
+3. 
 
 ###  Running
 
