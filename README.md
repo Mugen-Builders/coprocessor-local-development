@@ -8,7 +8,7 @@
 </div>
 <br>
 <p align="center">
-	<img src="https://img.shields.io/github/license/henriquemarlon/coprocessor-local-development?style=default&logo=opensourceinitiative&logoColor=white&color=00F6FF" alt="license">
+	<img src="https://img.shields.io/github/license/henriquemarlon/coprocessor-local-development?style=default&logo=opensourceinitiative&logoColor=white&color=00ADD8" alt="license">
 	<img src="https://img.shields.io/github/last-commit/henriquemarlon/coprocessor-local-development?style=default&logo=git&logoColor=white&color=000000" alt="last-commit">
 </p>
 
