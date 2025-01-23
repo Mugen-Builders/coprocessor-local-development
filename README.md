@@ -4,12 +4,15 @@
 </p>
 <br>
 <div align="center">
-<b>This application aims to be a local option to improve the development environment <br> for applications built for the Cartesi Coprocessor</b>
+    <i>A tool for developing Cartesi Coprocessor applications</i>
+</div>
+<div align="center">
+<b>This aims to be a development environment for Cartesi Coprocessor applications</b>
 </div>
 <br>
 <p align="center">
-	<img src="https://img.shields.io/github/license/henriquemarlon/coprocessor-local-development?style=default&logo=opensourceinitiative&logoColor=white&color=00ADD8" alt="license">
-	<img src="https://img.shields.io/github/last-commit/henriquemarlon/coprocessor-local-development?style=default&logo=git&logoColor=white&color=000000" alt="last-commit">
+	<img src="https://img.shields.io/github/license/Mugen-Builders/cartesi-coprocessor-nonodox?style=default&logo=opensourceinitiative&logoColor=white&color=00ADD8" alt="license">
+	<img src="https://img.shields.io/github/last-commit/Mugen-Builders/cartesi-coprocessor-nonodox?style=default&logo=git&logoColor=white&color=000000" alt="last-commit">
 </p>
 
 ## Table of Contents
@@ -19,22 +22,21 @@
   - [Prerequisites](#prerequisites)
   - [Running](#running)
 
-
 ## Overview
 
 <div align="justify">
-This is an iterative tool designed to accelerate the *debugging* and *development* process of applications using the coprocessor, providing a faster path to the production environment.
+This is an iterative tool designed to accelerate the "debugging" and "development" process of applications using the Cartesi Coprocessor infraestructure, providing a faster path to the production environment.
 </div>
 
-##  Getting Started
+## Getting Started
 
-###  Prerequisites
+### Prerequisites
 
-1. Foundry
-2. Golang
-3. Nonodo
+1. [Foundry](https://book.getfoundry.sh/getting-started/installation)
+2. [Golang](https://go.dev/doc/install)
+3. [Nonodo](https://github.com/Calindra/nonodo?tab=readme-ov-file#installation)
 
-###  Running
+### Running
 
 > [!WARNING]
 > Before running the command below, ensure you have created a `.toml` file and set the **environment variables** correctly. Below is the structure of the content that should be included in the file:
@@ -56,7 +58,7 @@ This is an iterative tool designed to accelerate the *debugging* and *developmen
 go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@latest
 ```
 
-2. Running:
+2. Run the application:
 
 ```sh
 nonodox --config <filename>.toml
