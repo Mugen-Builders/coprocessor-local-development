@@ -23,7 +23,6 @@ import (
 
 var (
 	configPath string
-	verbose    bool
 	Cmd        = &cobra.Command{
 		Use:   "nonodox",
 		Short: "nonodox is a tool for local development of Cartesi coprocessor",
@@ -50,7 +49,6 @@ Press Ctrl+C to stop the application.
 `
 
 func init() {
-	Cmd.Flags().BoolVar(&verbose, "verbose", false, "Show detailed output, including sensitive information")
 	Cmd.Flags().StringVar(&configPath, "config", "", "Path to the configuration file (required)")
 	if err := Cmd.MarkFlagRequired("config"); err != nil {
 		os.Exit(1)

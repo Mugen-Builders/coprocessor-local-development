@@ -1,8 +1,0 @@
-[anvil]
-http_url = "http://127.0.0.1:8545"
-ws_url = "ws://127.0.0.1:8545"
-private_key = ""
-
-[coprocessor]
-machine_hash = ""
-adapter_contract_address = ""

@@ -80,3 +80,4 @@ bytecode.txt
 
 Cargo.lock
 target
+*.toml
