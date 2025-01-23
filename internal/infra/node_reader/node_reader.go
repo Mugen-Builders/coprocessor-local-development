@@ -5,14 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 	"time"
 
 	genqlient "github.com/Khan/genqlient/graphql"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/henriquemarlon/coprocessor-local-solver/configs"
 )
 
 var (
@@ -20,22 +18,25 @@ var (
 	ErrNoVouchersFound = errors.New("no vouchers found")
 )
 
+type NodeReaderRepository interface {
+	GetNoticesByInputIndex(ctx context.Context, index int) ([][]byte, error)
+	GetVouchersByInputIndex(ctx context.Context, index int) ([][]byte, error)
+}
+
 type NodeReader struct {
 	Client genqlient.Client
 }
 
 func NewNodeReader(client genqlient.Client) *NodeReader {
-	configs.ConfigureLog(slog.LevelInfo)
 	return &NodeReader{
 		Client: client,
 	}
 }
 
 func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][]byte, error) {
-	err := waitForInput(ctx, r.Client, index)
+	err := _waitForInput(ctx, r.Client, index)
 	if err != nil {
-		slog.Error("failed to wait for input", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	res, err := getNoticesByInputIndex(ctx, r.Client, index)
@@ -53,8 +54,7 @@ func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][
 
 	abiInterface, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
-		slog.Error("failed to parse abi", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	outputs := make([][]byte, len(res.Input.Notices.Edges))
@@ -69,10 +69,9 @@ func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][
 }
 
 func (r *NodeReader) GetVouchersByInputIndex(ctx context.Context, index int) ([][]byte, error) {
-	err := waitForInput(ctx, r.Client, index)
+	err := _waitForInput(ctx, r.Client, index)
 	if err != nil {
-		slog.Error("failed to wait for input", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 	res, err := getVouchersByInputIndex(ctx, r.Client, index)
 	if err != nil {
@@ -107,8 +106,7 @@ func (r *NodeReader) GetVouchersByInputIndex(ctx context.Context, index int) ([]
 
 	abiInterface, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
-		slog.Error("failed to parse abi", "error", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	outputs := make([][]byte, len(res.Input.Vouchers.Edges))
@@ -117,7 +115,7 @@ func (r *NodeReader) GetVouchersByInputIndex(ctx context.Context, index int) ([]
 		if err != nil {
 			return nil, err
 		}
-		notice, err := abiInterface.Pack("Notice", payload)
+		notice, err := abiInterface.Pack("Voucher", payload)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +125,7 @@ func (r *NodeReader) GetVouchersByInputIndex(ctx context.Context, index int) ([]
 	return outputs, nil
 }
 
-func waitForInput(ctx context.Context, client genqlient.Client, index int) error {
+func _waitForInput(ctx context.Context, client genqlient.Client, index int) error {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 	for {

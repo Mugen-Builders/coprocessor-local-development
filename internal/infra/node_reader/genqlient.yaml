@@ -1,5 +1,5 @@
 schema: model/schema.graphql
-generated: genqlient.go
+generated: generated.go
 package: node_reader
 bindings:
   BigInt:

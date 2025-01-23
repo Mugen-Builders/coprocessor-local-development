@@ -1,32 +1,65 @@
 package configs
 
 import (
-	"github.com/spf13/viper"
+	"log/slog"
+	"os"
+	"sort"
+	"strings"
+
+	"github.com/BurntSushi/toml"
 )
 
-type CFG struct {
-	GRAPHQL_URL                     string `mapstructure:"GRAPHQL_URL"`
-	RPC_URL_WS                      string `mapstructure:"RPC_URL_WS"`
-	PRIVATE_KEY                     string `mapstructure:"PRIVATE_KEY"`
-	RPC_URL_HTTP                    string `mapstructure:"RPC_URL_HTTP"`
-	INPUT_BOX_ADDRESS               string `mapstructure:"INPUT_BOX_ADDRESS"`
-	COPROCESSOR_CALLER_MOCK_ADDRESS string `mapstructure:"COPROCESSOR_CALLER_MOCK_ADDRESS"`
+func readTOML(name string) string {
+	bytes, err := os.ReadFile(name)
+	if err != nil {
+		slog.Error("Failed to read file", "error", err)
+		os.Exit(1)
+	}
+	return string(bytes)
 }
 
-func LoadConfig() (*CFG, error) {
-	var cfg *CFG
+type configTOML = map[string]map[string]string
 
-	viper.SetDefault("GRAPHQL_URL", "http://127.0.0.1:8080/graphql")
-	viper.SetDefault("RPC_URL_WS", "ws://127.0.0.1:8545")
-	viper.SetDefault("RPC_URL_HTTP", "http://127.0.0.1:8545")
-	viper.SetDefault("INPUT_BOX_ADDRESS", "0x59b22D57D4f067708AB0c00552767405926dc768")
-	viper.SetDefault("PRIVATE_KEY", "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
-
-	viper.SetConfigName("app_config")
-	viper.AutomaticEnv()
-	err := viper.Unmarshal(&cfg)
+func decodeTOML(data string) configTOML {
+	var config configTOML
+	_, err := toml.Decode(data, &config)
 	if err != nil {
-		panic(err)
+		slog.Error("Failed to decode TOML", "error", err)
+		os.Exit(1)
 	}
-	return cfg, err
+	return config
+}
+
+func sortConfig(config configTOML) []string {
+	var keys []string
+	for section, variables := range config {
+		for key := range variables {
+			keys = append(keys, section+"."+key)
+		}
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func LoadConfig(path string) error {
+	data := readTOML(path)
+	config := decodeTOML(data)
+
+	sortedKeys := sortConfig(config)
+
+	for _, key := range sortedKeys {
+		parts := strings.SplitN(key, ".", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		section, variable := parts[0], parts[1]
+
+		value := config[section][variable]
+		envName := strings.ToUpper(section + "_" + variable)
+		err := os.Setenv(envName, value)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -31,7 +31,7 @@ var (
 
 // CoprocessorContractsMetaData contains all meta data concerning the CoprocessorContracts contract.
 var CoprocessorContractsMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_coprocessorAddress\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_machineHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"output\",\"type\":\"bytes\"}],\"name\":\"ResultReceived\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"coprocessor\",\"outputs\":[{\"internalType\":\"contractICoprocessor\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_machineHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_payloadHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes[]\",\"name\":\"outputs\",\"type\":\"bytes[]\"}],\"name\":\"coprocessorCallbackOutputsOnly\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"machineHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"payloadHash\",\"type\":\"bytes32\"}],\"name\":\"ComputationNotFound\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"}],\"name\":\"InsufficientFunds\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"length\",\"type\":\"uint256\"}],\"name\":\"InvalidOutputLength\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"selector\",\"type\":\"bytes4\"},{\"internalType\":\"bytes4\",\"name\":\"expected\",\"type\":\"bytes4\"}],\"name\":\"InvalidOutputSelector\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"current\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"expected\",\"type\":\"bytes32\"}],\"name\":\"MachineHashMismatch\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"caller\",\"type\":\"address\"}],\"name\":\"UnauthorizedCaller\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"name\":\"callCoprocessor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"computationSent\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"coprocessor\",\"outputs\":[{\"internalType\":\"contractICoprocessor\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_machineHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_payloadHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes[]\",\"name\":\"outputs\",\"type\":\"bytes[]\"}],\"name\":\"coprocessorCallbackOutputsOnly\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"machineHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // CoprocessorContractsABI is the input ABI used to generate the binding from.
@@ -180,6 +180,37 @@ func (_CoprocessorContracts *CoprocessorContractsTransactorRaw) Transact(opts *b
 	return _CoprocessorContracts.Contract.contract.Transact(opts, method, params...)
 }
 
+// ComputationSent is a free data retrieval call binding the contract method 0xdca588c1.
+//
+// Solidity: function computationSent(bytes32 ) view returns(bool)
+func (_CoprocessorContracts *CoprocessorContractsCaller) ComputationSent(opts *bind.CallOpts, arg0 [32]byte) (bool, error) {
+	var out []interface{}
+	err := _CoprocessorContracts.contract.Call(opts, &out, "computationSent", arg0)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// ComputationSent is a free data retrieval call binding the contract method 0xdca588c1.
+//
+// Solidity: function computationSent(bytes32 ) view returns(bool)
+func (_CoprocessorContracts *CoprocessorContractsSession) ComputationSent(arg0 [32]byte) (bool, error) {
+	return _CoprocessorContracts.Contract.ComputationSent(&_CoprocessorContracts.CallOpts, arg0)
+}
+
+// ComputationSent is a free data retrieval call binding the contract method 0xdca588c1.
+//
+// Solidity: function computationSent(bytes32 ) view returns(bool)
+func (_CoprocessorContracts *CoprocessorContractsCallerSession) ComputationSent(arg0 [32]byte) (bool, error) {
+	return _CoprocessorContracts.Contract.ComputationSent(&_CoprocessorContracts.CallOpts, arg0)
+}
+
 // Coprocessor is a free data retrieval call binding the contract method 0x7382084a.
 //
 // Solidity: function coprocessor() view returns(address)
@@ -242,6 +273,27 @@ func (_CoprocessorContracts *CoprocessorContractsCallerSession) MachineHash() ([
 	return _CoprocessorContracts.Contract.MachineHash(&_CoprocessorContracts.CallOpts)
 }
 
+// CallCoprocessor is a paid mutator transaction binding the contract method 0x127f92a3.
+//
+// Solidity: function callCoprocessor(bytes input) returns()
+func (_CoprocessorContracts *CoprocessorContractsTransactor) CallCoprocessor(opts *bind.TransactOpts, input []byte) (*types.Transaction, error) {
+	return _CoprocessorContracts.contract.Transact(opts, "callCoprocessor", input)
+}
+
+// CallCoprocessor is a paid mutator transaction binding the contract method 0x127f92a3.
+//
+// Solidity: function callCoprocessor(bytes input) returns()
+func (_CoprocessorContracts *CoprocessorContractsSession) CallCoprocessor(input []byte) (*types.Transaction, error) {
+	return _CoprocessorContracts.Contract.CallCoprocessor(&_CoprocessorContracts.TransactOpts, input)
+}
+
+// CallCoprocessor is a paid mutator transaction binding the contract method 0x127f92a3.
+//
+// Solidity: function callCoprocessor(bytes input) returns()
+func (_CoprocessorContracts *CoprocessorContractsTransactorSession) CallCoprocessor(input []byte) (*types.Transaction, error) {
+	return _CoprocessorContracts.Contract.CallCoprocessor(&_CoprocessorContracts.TransactOpts, input)
+}
+
 // CoprocessorCallbackOutputsOnly is a paid mutator transaction binding the contract method 0x58f6e29f.
 //
 // Solidity: function coprocessorCallbackOutputsOnly(bytes32 _machineHash, bytes32 _payloadHash, bytes[] outputs) returns()
@@ -261,138 +313,4 @@ func (_CoprocessorContracts *CoprocessorContractsSession) CoprocessorCallbackOut
 // Solidity: function coprocessorCallbackOutputsOnly(bytes32 _machineHash, bytes32 _payloadHash, bytes[] outputs) returns()
 func (_CoprocessorContracts *CoprocessorContractsTransactorSession) CoprocessorCallbackOutputsOnly(_machineHash [32]byte, _payloadHash [32]byte, outputs [][]byte) (*types.Transaction, error) {
 	return _CoprocessorContracts.Contract.CoprocessorCallbackOutputsOnly(&_CoprocessorContracts.TransactOpts, _machineHash, _payloadHash, outputs)
-}
-
-// CoprocessorContractsResultReceivedIterator is returned from FilterResultReceived and is used to iterate over the raw logs and unpacked data for ResultReceived events raised by the CoprocessorContracts contract.
-type CoprocessorContractsResultReceivedIterator struct {
-	Event *CoprocessorContractsResultReceived // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *CoprocessorContractsResultReceivedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(CoprocessorContractsResultReceived)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(CoprocessorContractsResultReceived)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *CoprocessorContractsResultReceivedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *CoprocessorContractsResultReceivedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// CoprocessorContractsResultReceived represents a ResultReceived event raised by the CoprocessorContracts contract.
-type CoprocessorContractsResultReceived struct {
-	Output []byte
-	Raw    types.Log // Blockchain specific contextual infos
-}
-
-// FilterResultReceived is a free log retrieval operation binding the contract event 0x2cb03a076cb6c3bce4e88be9aab18024a87534dbdd64891ff4faaa4a5901ac89.
-//
-// Solidity: event ResultReceived(bytes output)
-func (_CoprocessorContracts *CoprocessorContractsFilterer) FilterResultReceived(opts *bind.FilterOpts) (*CoprocessorContractsResultReceivedIterator, error) {
-
-	logs, sub, err := _CoprocessorContracts.contract.FilterLogs(opts, "ResultReceived")
-	if err != nil {
-		return nil, err
-	}
-	return &CoprocessorContractsResultReceivedIterator{contract: _CoprocessorContracts.contract, event: "ResultReceived", logs: logs, sub: sub}, nil
-}
-
-// WatchResultReceived is a free log subscription operation binding the contract event 0x2cb03a076cb6c3bce4e88be9aab18024a87534dbdd64891ff4faaa4a5901ac89.
-//
-// Solidity: event ResultReceived(bytes output)
-func (_CoprocessorContracts *CoprocessorContractsFilterer) WatchResultReceived(opts *bind.WatchOpts, sink chan<- *CoprocessorContractsResultReceived) (event.Subscription, error) {
-
-	logs, sub, err := _CoprocessorContracts.contract.WatchLogs(opts, "ResultReceived")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(CoprocessorContractsResultReceived)
-				if err := _CoprocessorContracts.contract.UnpackLog(event, "ResultReceived", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseResultReceived is a log parse operation binding the contract event 0x2cb03a076cb6c3bce4e88be9aab18024a87534dbdd64891ff4faaa4a5901ac89.
-//
-// Solidity: event ResultReceived(bytes output)
-func (_CoprocessorContracts *CoprocessorContractsFilterer) ParseResultReceived(log types.Log) (*CoprocessorContractsResultReceived, error) {
-	event := new(CoprocessorContractsResultReceived)
-	if err := _CoprocessorContracts.contract.UnpackLog(event, "ResultReceived", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
 }

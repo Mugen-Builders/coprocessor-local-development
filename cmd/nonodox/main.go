@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/henriquemarlon/coprocessor-local-solver/cmd/root"
 	"os"
+
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/root"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-package evm_reader
+package input_reader
 
 import (
 	"context"
@@ -6,29 +6,29 @@ import (
 	"math/big"
 	"sync"
 
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/configs"
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/pkg/rollups_contracts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/henriquemarlon/coprocessor-local-solver/configs"
-	"github.com/henriquemarlon/coprocessor-local-solver/pkg/rollups_contracts"
 )
 
-type EVMReader struct {
+type InputReader struct {
 	Client          *ethclient.Client
 	InputBoxAddress common.Address
 	mu              sync.Mutex
 	lastIndex       *big.Int
 }
 
-func NewEVMReader(client *ethclient.Client, inputBoxAddress common.Address) (*EVMReader, error) {
+func NewInputReader(client *ethclient.Client) (*InputReader, error) {
 	configs.ConfigureLog(slog.LevelInfo)
-	return &EVMReader{
+	return &InputReader{
 		Client:          client,
-		InputBoxAddress: inputBoxAddress,
+		InputBoxAddress: common.HexToAddress("0x59b22D57D4f067708AB0c00552767405926dc768"),
 		lastIndex:       big.NewInt(-1),
 	}, nil
 }
 
-func (r *EVMReader) GetInputAddedEvents(ctx context.Context, out chan<- rollups_contracts.IInputBoxInputAdded) error {
+func (r *InputReader) GetInputAddedEvents(ctx context.Context, out chan<- rollups_contracts.IInputBoxInputAdded) error {
 	iinputBox, err := rollups_contracts.NewIInputBox(r.InputBoxAddress, r.Client)
 	if err != nil {
 		return err
@@ -37,12 +37,11 @@ func (r *EVMReader) GetInputAddedEvents(ctx context.Context, out chan<- rollups_
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Info("context canceled, stopping event monitoring")
 			return nil
 		default:
 			itr, err := iinputBox.FilterInputAdded(nil, nil, nil)
 			if err != nil {
-				slog.Error("failed to filter inputadded events", "error", err)
+				slog.Error("failed to filter events", "error", err)
 				return err
 			}
 			defer itr.Close()
@@ -53,12 +52,12 @@ func (r *EVMReader) GetInputAddedEvents(ctx context.Context, out chan<- rollups_
 				if r.lastIndex.Cmp(event.InputIndex) < 0 {
 					r.lastIndex.Set(event.InputIndex)
 					out <- *event
-					slog.Info("new input", "dapp", event.Dapp, "index", event.InputIndex, "sender", event.Sender)
 				}
 				r.mu.Unlock()
 			}
+
 			if err := itr.Error(); err != nil {
-				slog.Error("error iterating inputadded events", "error", err)
+				slog.Error("error iterating through events", "error", err)
 				return err
 			}
 		}
