@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/root"
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox/root"
 )
 
 func main() {
