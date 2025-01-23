@@ -25,7 +25,7 @@
 ## Overview
 
 <div align="justify">
-This is an iterative tool designed to accelerate the "debugging" and "development" process of applications using the Cartesi Coprocessor infraestructure, providing a faster path to the production environment.
+This is an iterative tool designed to accelerate the "debugging" and "development" process of applications using the Cartesi Coprocessor infrastructure, providing a faster path to the production environment.
 </div>
 
 ## Getting Started
