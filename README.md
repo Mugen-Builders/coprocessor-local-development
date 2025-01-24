@@ -46,10 +46,11 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 > http_url = "http://127.0.0.1:8545"
 > ws_url = "ws://127.0.0.1:8545"
 > private_key = ""
+> input_box_block = "7"
 >
 > [coprocessor]
 > machine_hash = ""
-> adapter_contract_address = ""
+> adapter_address = ""
 > ```
 
 1. Install the package:
@@ -63,5 +64,3 @@ go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@lat
 ```sh
 nonodox --config <filename>.toml
 ```
-
-0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE
