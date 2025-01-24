@@ -159,7 +159,6 @@ func run() {
 					slog.Error("Failed to call addInput function", "error", err, "input", task.Input)
 					os.Exit(1)
 				}
-
 				slog.Info("Input added", "dapp", "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e", "tx", tx.Hash().Hex())
 			case <-ctx.Done():
 				return
@@ -173,7 +172,6 @@ func run() {
 			slog.Error("Failed to set up inputBox reader", "error", err)
 			os.Exit(1)
 		}
-
 		if err := reader.GetInputAddedEvents(ctx, chann2); err != nil {
 			slog.Error("Error fetching inputs", "error", err)
 			os.Exit(1)
@@ -187,6 +185,7 @@ func run() {
 				if _, ok := inputsHash[payloadHash]; !ok {
 					slog.Error("Input not found", "input", event.Input)
 				}
+
 				chann3 <- struct {
 					Event       rollups_contracts.IInputBoxInputAdded
 					PayloadHash common.Hash
