@@ -2,12 +2,14 @@ package root
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 
@@ -20,6 +22,11 @@ import (
 	"golang.org/x/crypto/sha3"
 	"golang.org/x/sync/errgroup"
 )
+
+//go:embed anvil_state.json
+var devnetState []byte
+
+const stateFileName = "anvil_state.json"
 
 var (
 	configPath string
@@ -61,23 +68,57 @@ func init() {
 
 func run() {
 	_ = exec.Command("pkill", "nonodo").Run()
+	_ = exec.Command("pkill", "anvil").Run()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-signalChan
-		cancel()
-		_ = exec.Command("pkill", "nonodo").Run()
-	}()
 
 	group, ctx := errgroup.WithContext(ctx)
-	nonodo := exec.CommandContext(ctx, "nonodo")
+
+	dir, err := makeStateTemp()
+	if err != nil {
+		slog.Error("Failed to create temp state directory", "error", err)
+		os.Exit(1)
+	}
+	defer removeTemp(dir)
+
+	anvil := exec.CommandContext(
+		ctx,
+		"anvil",
+		"--load-state",
+		path.Join(dir, stateFileName),
+	)
+	anvil.Stdout = os.Stdout
+	anvil.Stderr = os.Stderr
+	group.Go(func() error {
+		return anvil.Run()
+	})
+
+	nonodo := exec.CommandContext(
+		ctx,
+		"nonodo",
+		"--disable-devnet",
+		"--rpc-url",
+		"ws://localhost:8545",
+		"--contracts-input-box-block",
+		"7",
+	)
 	notifyWriter := tools.NewNotifyWriter(io.Discard, "nonodo: ready")
 	nonodo.Stdout = notifyWriter
-	group.Go(nonodo.Run)
+	group.Go(func() error {
+		return nonodo.Run()
+	})
+
+	go func() {
+		<-signalChan
+		slog.Info("Received termination signal, shutting down gracefully...")
+		cancel()
+		_ = anvil.Process.Kill()
+		_ = nonodo.Process.Kill()
+	}()
 
 	select {
 	case <-notifyWriter.Ready():
@@ -102,44 +143,60 @@ func run() {
 		Event          rollups_contracts.IInputBoxInputAdded
 		MachineOutputs [][]byte
 	})
-	inputBoxChan := make(chan rollups_contracts.IInputBoxInputAdded)
-	coprocessorInputChan := make(chan rollups_contracts.IInputBoxInputAdded)
+	inputAddedChan := make(chan rollups_contracts.IInputBoxInputAdded)
+	taskIssuedChan := make(chan coprocessor_contracts.MockCoprocessorTaskIssued)
 
 	go func() {
-		reader, err := NewTransactor()
+		reader, err := NewTaskReader()
 		if err != nil {
-			slog.Error("Failed to set up transactor", "error", err)
+			slog.Error("Failed to set up task reader", "error", err)
 			os.Exit(1)
 		}
 
-		if err := reader.GetInputAddedEvents(ctx, inputBoxChan); err != nil {
-			slog.Error("Error fetching inputs", "error", err)
+		if err := reader.GetTaskIssuedEvents(ctx, taskIssuedChan); err != nil {
+			slog.Error("Error fetching tasks", "error", err)
 			os.Exit(1)
 		}
 
 		for {
 			select {
-			case input := <-inputBoxChan:
-				instance, err := coprocessor_contracts.NewCoprocessorContracts(
-					common.HexToAddress(os.Getenv("COPROCESSOR_ADAPTER_CONTRACT_ADDRESS")),
+			case input := <-taskIssuedChan:
+				instance, err := rollups_contracts.NewIInputBox(
+					common.HexToAddress("0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE"),
 					ethClient,
 				)
 				if err != nil {
-					slog.Error("Failed to create coprocessor instance", "error", err)
+					slog.Error("Failed to create inputBox instance", "error", err)
 					os.Exit(1)
 				}
 
-				_, err = instance.CallCoprocessor(opts, input.Input)
+				tx, err := instance.AddInput(
+					opts,
+					common.HexToAddress("0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e"),
+					input.Input,
+				)
 				if err != nil {
-					slog.Error("Failed to call coprocessor function", "error", err, "input", input)
+					slog.Error("Failed to call issueTask function", "error", err, "input", input)
 					os.Exit(1)
 				}
 
-				slog.Info("New input", "dapp", input.Dapp, "index", input.InputIndex, "sender", input.Sender)
-				coprocessorInputChan <- input
+				slog.Info("Input added", "dapp", common.HexToAddress("0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e"), "tx", tx.Hash().Hex())
 			case <-ctx.Done():
 				return
 			}
+		}
+	}()
+
+	go func() {
+		reader, err := NewInputReader()
+		if err != nil {
+			slog.Error("Failed to set up inputBox reader", "error", err)
+			os.Exit(1)
+		}
+
+		if err := reader.GetInputAddedEvents(ctx, inputAddedChan); err != nil {
+			slog.Error("Error fetching inputs", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -150,7 +207,7 @@ func run() {
 			os.Exit(1)
 		}
 
-		for event := range coprocessorInputChan {
+		for event := range inputAddedChan {
 			outputs, err := findOutputsByIdUseCase.Execute(ctx, int(event.InputIndex.Int64()))
 			if err != nil {
 				slog.Error("Failed to find outputs by ID", "error", err)
@@ -195,5 +252,26 @@ func run() {
 		case <-ctx.Done():
 			return
 		}
+	}
+}
+
+func makeStateTemp() (string, error) {
+	tempDir, err := os.MkdirTemp("", "")
+	if err != nil {
+		return "", fmt.Errorf("anvil: failed to create temp dir: %w", err)
+	}
+	stateFile := path.Join(tempDir, stateFileName)
+	const permissions = 0644
+	err = os.WriteFile(stateFile, devnetState, permissions)
+	if err != nil {
+		return "", fmt.Errorf("anvil: failed to write state file: %w", err)
+	}
+	return tempDir, nil
+}
+
+func removeTemp(dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		slog.Warn("anvil: failed to remove temp file", "error", err)
 	}
 }

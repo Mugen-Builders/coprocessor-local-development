@@ -28,6 +28,11 @@ var bindings = []contractBinding{
 		typeName: "IInputBox",
 		outFile:  "./pkg/rollups_contracts/iinput_box.go",
 	},
+	{
+		jsonPath: baseContractsPath + "inputs/InputBox.sol/InputBox.json",
+		typeName: "InputBox",
+		outFile: "./pkg/rollups_contracts/input_box.go",
+	},
 }
 
 func main() {

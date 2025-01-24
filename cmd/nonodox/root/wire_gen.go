@@ -9,24 +9,37 @@ package root
 import (
 	"github.com/Khan/genqlient/graphql"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/configs"
-	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/input_reader"
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/evm_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/node_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/usecase"
 	"github.com/google/wire"
 )
 
+import (
+	_ "embed"
+)
+
 // Injectors from wire.go:
 
-func NewTransactor() (*input_reader.InputReader, error) {
+func NewInputReader() (*evm_reader.InputReader, error) {
 	client, err := configs.SetupTransactorWS()
 	if err != nil {
 		return nil, err
 	}
-	inputReader, err := input_reader.NewInputReader(client)
+	inputReader, err := evm_reader.NewInputReader(client)
 	if err != nil {
 		return nil, err
 	}
 	return inputReader, nil
+}
+
+func NewTaskReader() (*evm_reader.TaskReader, error) {
+	client, err := configs.SetupTransactorWS()
+	if err != nil {
+		return nil, err
+	}
+	taskReader := evm_reader.NewTaskReader(client)
+	return taskReader, nil
 }
 
 func NewFindOutputsByIdUseCase(graphqlUrl string, httpClient graphql.Doer) (*usecase.FindOutputsByIdUseCase, error) {
@@ -38,6 +51,8 @@ func NewFindOutputsByIdUseCase(graphqlUrl string, httpClient graphql.Doer) (*use
 
 // wire.go:
 
-var setTransactorProvider = wire.NewSet(configs.SetupTransactorWS, input_reader.NewInputReader)
+var setInputReader = wire.NewSet(configs.SetupTransactorWS, evm_reader.NewInputReader)
+
+var setTaskReader = wire.NewSet(configs.SetupTransactorWS, evm_reader.NewTaskReader)
 
 var setFindOutputsByIdUseCase = wire.NewSet(graphql.NewClient, node_reader.NewNodeReader, wire.Bind(new(node_reader.NodeReaderRepository), new(*node_reader.NodeReader)), usecase.NewFindOutputsByIdUseCase)

@@ -6,15 +6,20 @@ package root
 import (
 	genqlient "github.com/Khan/genqlient/graphql"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/configs"
-	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/input_reader"
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/evm_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/node_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/usecase"
 	"github.com/google/wire"
 )
 
-var setTransactorProvider = wire.NewSet(
+var setInputReader = wire.NewSet(
 	configs.SetupTransactorWS,
-	input_reader.NewInputReader,
+	evm_reader.NewInputReader,
+)
+
+var setTaskReader = wire.NewSet(
+	configs.SetupTransactorWS,
+	evm_reader.NewTaskReader,
 )
 
 var setFindOutputsByIdUseCase = wire.NewSet(
@@ -24,8 +29,13 @@ var setFindOutputsByIdUseCase = wire.NewSet(
 	usecase.NewFindOutputsByIdUseCase,
 )
 
-func NewTransactor() (*input_reader.InputReader, error) {
-	wire.Build(setTransactorProvider)
+func NewInputReader() (*evm_reader.InputReader, error) {
+	wire.Build(setInputReader)
+	return nil, nil
+}
+
+func NewTaskReader() (*evm_reader.TaskReader, error) {
+	wire.Build(setTaskReader)
 	return nil, nil
 }
 

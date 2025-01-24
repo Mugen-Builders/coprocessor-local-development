@@ -1,4 +1,4 @@
-package input_reader
+package evm_reader
 
 import (
 	"context"
