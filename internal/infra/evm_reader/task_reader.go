@@ -29,37 +29,37 @@ func NewTaskReader(client *ethclient.Client) *TaskReader {
 }
 
 func (r *TaskReader) GetTaskIssuedEvents(ctx context.Context, out chan<- coprocessor_contracts.MockCoprocessorTaskIssued) error {
-    mockCoprocessor, err := coprocessor_contracts.NewMockCoprocessor(r.MockCoprocessorAddress, r.Client)
-    if err != nil {
-        return err
-    }
+	mockCoprocessor, err := coprocessor_contracts.NewMockCoprocessor(r.MockCoprocessorAddress, r.Client)
+	if err != nil {
+		return err
+	}
 
-    for {
-        select {
-        case <-ctx.Done():
-            return nil
-        default:
-            itr, err := mockCoprocessor.FilterTaskIssued(nil)
-            if err != nil {
-                slog.Error("failed to filter events", "error", err)
-                return err
-            }
-            defer itr.Close()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			itr, err := mockCoprocessor.FilterTaskIssued(nil)
+			if err != nil {
+				slog.Error("failed to filter events", "error", err)
+				return err
+			}
+			defer itr.Close()
 
-            for itr.Next() {
-                event := itr.Event
-                r.mu.Lock()
-                if r.lastIndex.Cmp(big.NewInt(int64(event.Raw.Index))) < 0 {
-                    r.lastIndex.Set(big.NewInt(int64(event.Raw.Index)))
-                    out <- *event
-                }
-                r.mu.Unlock()
-            }
+			for itr.Next() {
+				event := itr.Event
+				r.mu.Lock()
+				if r.lastIndex.Cmp(big.NewInt(int64(event.Raw.Index))) < 0 {
+					r.lastIndex.Set(big.NewInt(int64(event.Raw.Index)))
+					out <- *event
+				}
+				r.mu.Unlock()
+			}
 
-            if err := itr.Error(); err != nil {
-                slog.Error("error iterating through events", "error", err)
-                return err
-            }
-        }
-    }
+			if err := itr.Error(); err != nil {
+				slog.Error("error iterating through events", "error", err)
+				return err
+			}
+		}
+	}
 }

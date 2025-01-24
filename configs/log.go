@@ -12,7 +12,7 @@ func ConfigureLog(level slog.Leveler) {
 	logOpts.Level = level
 	logOpts.AddSource = false
 	logOpts.NoColor = false
-	logOpts.TimeFormat = "[15:04:05.000]"
+	logOpts.TimeFormat = "\n\n[15:04:05.000]"
 	handler := tint.NewHandler(os.Stdout, logOpts)
 	logger := slog.New(handler)
 	slog.SetDefault(logger)

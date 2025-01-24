@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"sort"
@@ -8,6 +9,14 @@ import (
 
 	"github.com/BurntSushi/toml"
 )
+
+type Config struct {
+	AnvilWsURL                string
+	AnvilInputBoxBlock        string
+	AnvilHttpURL              string
+	CoprocessorMachineHash    string
+	CoprocessorAdapterAddress string
+}
 
 func readTOML(name string) string {
 	bytes, err := os.ReadFile(name)
@@ -41,10 +50,9 @@ func sortConfig(config configTOML) []string {
 	return keys
 }
 
-func LoadConfig(path string) error {
+func LoadConfig(path string) (*Config, error) {
 	data := readTOML(path)
 	config := decodeTOML(data)
-
 	sortedKeys := sortConfig(config)
 
 	for _, key := range sortedKeys {
@@ -58,8 +66,26 @@ func LoadConfig(path string) error {
 		envName := strings.ToUpper(section + "_" + variable)
 		err := os.Setenv(envName, value)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+
+	envVars := &Config{
+		AnvilWsURL:                verifyEnv("ANVIL_WS_URL"),
+		AnvilInputBoxBlock:        verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
+		AnvilHttpURL:              verifyEnv("ANVIL_HTTP_URL"),
+		CoprocessorMachineHash:    verifyEnv("COPROCESSOR_MACHINE_HASH"),
+		CoprocessorAdapterAddress: verifyEnv("COPROCESSOR_ADAPTER_ADDRESS"),
+	}
+
+	return envVars, nil
+}
+
+func verifyEnv(key string) string {
+	val, ok := os.LookupEnv(key)
+	if !ok || val == "" {
+		slog.Error(fmt.Sprintf("%s environment variable not set or empty", key))
+		os.Exit(1)
+	}
+	return val
 }
