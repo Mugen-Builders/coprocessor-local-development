@@ -4,10 +4,10 @@
 </p>
 <br>
 <div align="center">
-    <i>A tool for developing Cartesi Coprocessor applications</i>
+    <i>A tool for developing Cartesi coprocessors</i>
 </div>
 <div align="center">
-<b>This aims to be a development environment for Cartesi Coprocessor applications</b>
+<b>This tool aims to be an iterative development environment for Cartesi coprocessors</b>
 </div>
 <br>
 <p align="center">
