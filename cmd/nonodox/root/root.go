@@ -55,7 +55,7 @@ func init() {
 }
 
 var startupMessage = `
-NonodoX local development tool started
+NoNodoX local development tool started
 
 Anvil running at ANVIL_HTTP_URL
 GraphQL server pooling at GRAPHQL_URL

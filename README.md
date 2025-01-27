@@ -59,6 +59,16 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@latest
 ```
 
+> [!WARNING]
+> The command above installs NoNodoX into the `bin` directory inside the directory defined by the `GOPATH` environment variable.
+> If you don't set the `GOPATH` variable, the default install location is `$HOME/go/bin`.
+> So, to call the `nonodox` command directly, you should add it to the `PATH` variable.
+> The command below exemplifies that.
+
+```sh
+export PATH="$HOME/go/bin:$PATH"
+```
+
 2. Download the state file (.json) and start the anvil instance:
 
 ```sh
