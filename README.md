@@ -77,6 +77,6 @@ nonodox --config <filename>.toml
 ```sh
 docker run --rm \
 	-v $(pwd):/app -w /app \
-	ghcr.io/Mugen-Builders/cartesi-coprocessor-nonodox:latest \
+	ghcr.io/mugen-builders/cartesi-coprocessor-nonodox:latest \
 	--config <path-to-toml-file>
 ```
