@@ -47,7 +47,7 @@ func (r *NodeReader) GetOutputsByInputIndex(ctx context.Context, index int) ([][
 		return nil, ErrNoNoticesFound
 	}
 	slog.Info("Notices", "count", len(res.Input.Notices.Edges), "inputIndex", index, "payload", res.Input.Notices.Edges[0].Node.Payload)
-	
+
 	outputs := make([][]byte, len(res.Input.Notices.Edges))
 
 	noticeAbiJSON := `[{"inputs":[{"internalType":"bytes","name":"payload","type":"bytes"}],"name":"Notice","outputs":[],"stateMutability":"nonpayable","type":"function"}]`

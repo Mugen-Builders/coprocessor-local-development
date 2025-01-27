@@ -116,7 +116,6 @@ func run() {
 		slog.Info("Context canceled before nonodo became ready")
 	}
 
-	// Channels for inter-process communication
 	chann1 := make(chan coprocessor_contracts.MockCoprocessorTaskIssued, 100)
 	chann2 := make(chan rollups_contracts.IInputBoxInputAdded, 100)
 	chann3 := make(chan struct {
@@ -144,7 +143,6 @@ func run() {
 		os.Exit(1)
 	}
 
-	// Task reader
 	group.Go(func() error {
 		reader, err := NewTaskReader(common.HexToAddress(cfg.MockCoprocessorAddress))
 		if err != nil {
@@ -166,7 +164,6 @@ func run() {
 		}
 	})
 
-	// Input processing
 	group.Go(func() error {
 		instance, err := rollups_contracts.NewIInputBox(common.HexToAddress(cfg.InputBoxAddress), ethClient)
 		if err != nil {
@@ -189,7 +186,6 @@ func run() {
 		}
 	})
 
-	// Input reader
 	group.Go(func() error {
 		reader, err := NewInputReader()
 		if err != nil {
@@ -211,7 +207,6 @@ func run() {
 		}
 	})
 
-	// Processing inputs
 	group.Go(func() error {
 		for {
 			select {
@@ -231,7 +226,6 @@ func run() {
 		}
 	})
 
-	// Outputs processing
 	group.Go(func() error {
 		findOutputsByIdUseCase, err := NewFindOutputsByIdUseCase("http://localhost:8080/graphql", nil)
 		if err != nil {
@@ -272,7 +266,6 @@ func run() {
 		}
 	})
 
-	// Coprocessor callback
 	group.Go(func() error {
 		instance, err := coprocessor_contracts.NewMockCoprocessor(common.HexToAddress(cfg.MockCoprocessorAddress), ethClient)
 		if err != nil {
@@ -291,9 +284,9 @@ func run() {
 					common.HexToAddress(cfg.CoprocessorAdapterAddress),
 				)
 				if err != nil {
-					// if strings.Contains(err.Error(), "execution reverted") {
-					// 	slog.Warn("Execution reverted, make sure the CoprocessorAdapter address is correct")
-					// }
+					if strings.Contains(err.Error(), "execution reverted") {
+						slog.Warn("Execution reverted, make sure the CoprocessorAdapter address is correct")
+					}
 					slog.Error("Failed to call coprocessor callback", "error", err)
 					continue
 				}
