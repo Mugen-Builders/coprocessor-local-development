@@ -38,7 +38,7 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 
 ### Running
 
-> [!WARNING]
+> [!NOTE]
 > Before running the command below, ensure you have created a `.toml` file and set the **environment variables** correctly. Below is the structure of the content that should be included in the file:
 >
 > ```toml
