@@ -9,6 +9,7 @@ import (
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/evm_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/node_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/usecase"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/wire"
 )
 
@@ -34,7 +35,7 @@ func NewInputReader() (*evm_reader.InputReader, error) {
 	return nil, nil
 }
 
-func NewTaskReader() (*evm_reader.TaskReader, error) {
+func NewTaskReader(mockCoprocessorAddress common.Address) (*evm_reader.TaskReader, error) {
 	wire.Build(setTaskReader)
 	return nil, nil
 }

@@ -5,26 +5,12 @@ query getInputStatus($index: Int!) {
   }
 }
 
-query getNoticesByInputIndex($index: Int!) {
-  input(index: $index) {
+query getOutputsByInputIndex($inputIndex: Int!) {
+  input(index: $inputIndex) {
     notices {
       edges {
         node {
           index
-          payload
-        }
-      }
-    }
-  }
-}
-
-query getVouchersByInputIndex($index: Int!) {
-  input(index: $index) {
-    vouchers {
-      edges {
-        node {
-          index
-          destination
           payload
         }
       }

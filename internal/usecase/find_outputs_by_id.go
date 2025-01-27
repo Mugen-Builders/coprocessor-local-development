@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"log/slog"
 
 	genqlient "github.com/Khan/genqlient/graphql"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/node_reader"
@@ -27,24 +26,12 @@ func NewFindOutputsByIdUseCase(client genqlient.Client, nodeReaderRepository nod
 
 func (r *FindOutputsByIdUseCase) Execute(ctx context.Context, index int) ([][]byte, error) {
 	var outputs [][]byte
-
-	notices, err := r.NodeReaderRepository.GetNoticesByInputIndex(ctx, index)
+	outputs, err := r.NodeReaderRepository.GetOutputsByInputIndex(ctx, index)
 	if err != nil {
+		if errors.Is(err, node_reader.ErrNoNoticesFound) {
+			return nil, ErrNoOutputsFound
+		}
 		return nil, err
-	} else {
-		outputs = append(outputs, notices...)
 	}
-
-	vouchers, err := r.NodeReaderRepository.GetVouchersByInputIndex(ctx, index)
-	if err != nil {
-		slog.Error("failed to get vouchers by input index", "error", err)
-	} else {
-		outputs = append(outputs, vouchers...)
-	}
-
-	if len(outputs) == 0 {
-		return nil, ErrNoOutputsFound
-	}
-
 	return outputs, nil
 }

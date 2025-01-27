@@ -19,8 +19,7 @@ var (
 )
 
 type NodeReaderRepository interface {
-	GetNoticesByInputIndex(ctx context.Context, index int) ([][]byte, error)
-	GetVouchersByInputIndex(ctx context.Context, index int) ([][]byte, error)
+	GetOutputsByInputIndex(ctx context.Context, index int) ([][]byte, error)
 }
 
 type NodeReader struct {
@@ -33,13 +32,13 @@ func NewNodeReader(client genqlient.Client) *NodeReader {
 	}
 }
 
-func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][]byte, error) {
+func (r *NodeReader) GetOutputsByInputIndex(ctx context.Context, index int) ([][]byte, error) {
 	err := _waitForInput(ctx, r.Client, index)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := getNoticesByInputIndex(ctx, r.Client, index)
+	res, err := getOutputsByInputIndex(ctx, r.Client, index)
 	if err != nil {
 		return nil, err
 	}
@@ -47,75 +46,18 @@ func (r *NodeReader) GetNoticesByInputIndex(ctx context.Context, index int) ([][
 	if len(res.Input.Notices.Edges) == 0 {
 		return nil, ErrNoNoticesFound
 	}
-
-	slog.Info("notices found", "count", len(res.Input.Notices.Edges), "inputIndex", index, "payload", res.Input.Notices.Edges[0].Node.Payload)
-
-	abiJSON := `[{"inputs":[{"internalType":"bytes","name":"payload","type":"bytes"}],"name":"Notice","outputs":[],"stateMutability":"nonpayable","type":"function"}]`
-
-	abiInterface, err := abi.JSON(strings.NewReader(abiJSON))
-	if err != nil {
-		return nil, err
-	}
-
+	slog.Info("Notices", "count", len(res.Input.Notices.Edges), "inputIndex", index, "payload", res.Input.Notices.Edges[0].Node.Payload)
+	
 	outputs := make([][]byte, len(res.Input.Notices.Edges))
+
+	noticeAbiJSON := `[{"inputs":[{"internalType":"bytes","name":"payload","type":"bytes"}],"name":"Notice","outputs":[],"stateMutability":"nonpayable","type":"function"}]`
+	noticeAbiInterface, err := abi.JSON(strings.NewReader(noticeAbiJSON))
+	if err != nil {
+		return nil, err
+	}
+
 	for i, edge := range res.Input.Notices.Edges {
-		notice, err := abiInterface.Pack("Notice", common.Hex2Bytes(edge.Node.Payload[2:]))
-		if err != nil {
-			return nil, err
-		}
-		outputs[i] = notice
-	}
-	return outputs, nil
-}
-
-func (r *NodeReader) GetVouchersByInputIndex(ctx context.Context, index int) ([][]byte, error) {
-	err := _waitForInput(ctx, r.Client, index)
-	if err != nil {
-		return nil, err
-	}
-	res, err := getVouchersByInputIndex(ctx, r.Client, index)
-	if err != nil {
-		return nil, err
-	}
-	if len(res.Input.Vouchers.Edges) == 0 {
-		return nil, ErrNoVouchersFound
-	}
-
-	slog.Info("vouchers found", "count", len(res.Input.Vouchers.Edges), "inputIndex", index, "payload", res.Input.Vouchers.Edges[0].Node.Payload)
-
-	addressType, err := abi.NewType("address", "", nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create address type: %w", err)
-	}
-
-	bytesType, err := abi.NewType("bytes", "", nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create bytes type: %w", err)
-	}
-
-	args := abi.Arguments{
-		{
-			Type: addressType,
-		},
-		{
-			Type: bytesType,
-		},
-	}
-
-	abiJSON := `[{"inputs":[{"internalType":"bytes","name":"payload","type":"bytes"}],"name":"Notice","outputs":[],"stateMutability":"nonpayable","type":"function"}]`
-
-	abiInterface, err := abi.JSON(strings.NewReader(abiJSON))
-	if err != nil {
-		return nil, err
-	}
-
-	outputs := make([][]byte, len(res.Input.Vouchers.Edges))
-	for i, edge := range res.Input.Vouchers.Edges {
-		payload, err := args.Pack(common.HexToAddress(edge.Node.Destination), common.Hex2Bytes(edge.Node.Payload[2:]))
-		if err != nil {
-			return nil, err
-		}
-		notice, err := abiInterface.Pack("Voucher", payload)
+		notice, err := noticeAbiInterface.Pack("Notice", common.Hex2Bytes(edge.Node.Payload[2:]))
 		if err != nil {
 			return nil, err
 		}
@@ -135,6 +77,9 @@ func _waitForInput(ctx context.Context, client genqlient.Client, index int) erro
 		}
 		if result.Input.Status == CompletionStatusAccepted {
 			return nil
+		}
+		if result.Input.Status == CompletionStatusRejected {
+			return fmt.Errorf("input rejected")
 		}
 		select {
 		case <-ticker.C:

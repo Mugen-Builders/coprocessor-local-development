@@ -12,11 +12,8 @@ import (
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/evm_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/infra/node_reader"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/usecase"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/google/wire"
-)
-
-import (
-	_ "embed"
 )
 
 // Injectors from wire.go:
@@ -33,12 +30,12 @@ func NewInputReader() (*evm_reader.InputReader, error) {
 	return inputReader, nil
 }
 
-func NewTaskReader() (*evm_reader.TaskReader, error) {
+func NewTaskReader(mockCoprocessorAddress common.Address) (*evm_reader.TaskReader, error) {
 	client, err := configs.SetupTransactorWS()
 	if err != nil {
 		return nil, err
 	}
-	taskReader := evm_reader.NewTaskReader(client)
+	taskReader := evm_reader.NewTaskReader(client, mockCoprocessorAddress)
 	return taskReader, nil
 }
 

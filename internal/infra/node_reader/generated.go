@@ -29,21 +29,13 @@ type __getInputStatusInput struct {
 // GetIndex returns __getInputStatusInput.Index, and is useful for accessing the field via an interface.
 func (v *__getInputStatusInput) GetIndex() int { return v.Index }
 
-// __getNoticesByInputIndexInput is used internally by genqlient
-type __getNoticesByInputIndexInput struct {
-	Index int `json:"index"`
+// __getOutputsByInputIndexInput is used internally by genqlient
+type __getOutputsByInputIndexInput struct {
+	InputIndex int `json:"inputIndex"`
 }
 
-// GetIndex returns __getNoticesByInputIndexInput.Index, and is useful for accessing the field via an interface.
-func (v *__getNoticesByInputIndexInput) GetIndex() int { return v.Index }
-
-// __getVouchersByInputIndexInput is used internally by genqlient
-type __getVouchersByInputIndexInput struct {
-	Index int `json:"index"`
-}
-
-// GetIndex returns __getVouchersByInputIndexInput.Index, and is useful for accessing the field via an interface.
-func (v *__getVouchersByInputIndexInput) GetIndex() int { return v.Index }
+// GetInputIndex returns __getOutputsByInputIndexInput.InputIndex, and is useful for accessing the field via an interface.
+func (v *__getOutputsByInputIndexInput) GetInputIndex() int { return v.InputIndex }
 
 // getInputStatusInput includes the requested fields of the GraphQL type Input.
 // The GraphQL type's documentation follows.
@@ -66,156 +58,77 @@ type getInputStatusResponse struct {
 // GetInput returns getInputStatusResponse.Input, and is useful for accessing the field via an interface.
 func (v *getInputStatusResponse) GetInput() getInputStatusInput { return v.Input }
 
-// getNoticesByInputIndexInput includes the requested fields of the GraphQL type Input.
+// getOutputsByInputIndexInput includes the requested fields of the GraphQL type Input.
 // The GraphQL type's documentation follows.
 //
 // Request submitted to the application to advance its state
-type getNoticesByInputIndexInput struct {
+type getOutputsByInputIndexInput struct {
 	// Get notices from this particular input with support for pagination
-	Notices getNoticesByInputIndexInputNoticesNoticeConnection `json:"notices"`
+	Notices getOutputsByInputIndexInputNoticesNoticeConnection `json:"notices"`
 }
 
-// GetNotices returns getNoticesByInputIndexInput.Notices, and is useful for accessing the field via an interface.
-func (v *getNoticesByInputIndexInput) GetNotices() getNoticesByInputIndexInputNoticesNoticeConnection {
+// GetNotices returns getOutputsByInputIndexInput.Notices, and is useful for accessing the field via an interface.
+func (v *getOutputsByInputIndexInput) GetNotices() getOutputsByInputIndexInputNoticesNoticeConnection {
 	return v.Notices
 }
 
-// getNoticesByInputIndexInputNoticesNoticeConnection includes the requested fields of the GraphQL type NoticeConnection.
+// getOutputsByInputIndexInputNoticesNoticeConnection includes the requested fields of the GraphQL type NoticeConnection.
 // The GraphQL type's documentation follows.
 //
 // Pagination result
-type getNoticesByInputIndexInputNoticesNoticeConnection struct {
+type getOutputsByInputIndexInputNoticesNoticeConnection struct {
 	// Pagination entries returned for the current page
-	Edges []getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge `json:"edges"`
+	Edges []getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge `json:"edges"`
 }
 
-// GetEdges returns getNoticesByInputIndexInputNoticesNoticeConnection.Edges, and is useful for accessing the field via an interface.
-func (v *getNoticesByInputIndexInputNoticesNoticeConnection) GetEdges() []getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge {
+// GetEdges returns getOutputsByInputIndexInputNoticesNoticeConnection.Edges, and is useful for accessing the field via an interface.
+func (v *getOutputsByInputIndexInputNoticesNoticeConnection) GetEdges() []getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge {
 	return v.Edges
 }
 
-// getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge includes the requested fields of the GraphQL type NoticeEdge.
+// getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge includes the requested fields of the GraphQL type NoticeEdge.
 // The GraphQL type's documentation follows.
 //
 // Pagination entry
-type getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge struct {
+type getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge struct {
 	// Node instance
-	Node getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice `json:"node"`
+	Node getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice `json:"node"`
 }
 
-// GetNode returns getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge.Node, and is useful for accessing the field via an interface.
-func (v *getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge) GetNode() getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice {
+// GetNode returns getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge.Node, and is useful for accessing the field via an interface.
+func (v *getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdge) GetNode() getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice {
 	return v.Node
 }
 
-// getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice includes the requested fields of the GraphQL type Notice.
+// getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice includes the requested fields of the GraphQL type Notice.
 // The GraphQL type's documentation follows.
 //
 // Informational statement that can be validated in the base layer blockchain
-type getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice struct {
+type getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice struct {
 	// Notice index within the context of the input that produced it
 	Index int `json:"index"`
 	// Notice data as a payload in Ethereum hex binary format, starting with '0x'
 	Payload string `json:"payload"`
 }
 
-// GetIndex returns getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice.Index, and is useful for accessing the field via an interface.
-func (v *getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice) GetIndex() int {
+// GetIndex returns getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice.Index, and is useful for accessing the field via an interface.
+func (v *getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice) GetIndex() int {
 	return v.Index
 }
 
-// GetPayload returns getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice.Payload, and is useful for accessing the field via an interface.
-func (v *getNoticesByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice) GetPayload() string {
+// GetPayload returns getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice.Payload, and is useful for accessing the field via an interface.
+func (v *getOutputsByInputIndexInputNoticesNoticeConnectionEdgesNoticeEdgeNodeNotice) GetPayload() string {
 	return v.Payload
 }
 
-// getNoticesByInputIndexResponse is returned by getNoticesByInputIndex on success.
-type getNoticesByInputIndexResponse struct {
+// getOutputsByInputIndexResponse is returned by getOutputsByInputIndex on success.
+type getOutputsByInputIndexResponse struct {
 	// Get input based on its identifier
-	Input getNoticesByInputIndexInput `json:"input"`
+	Input getOutputsByInputIndexInput `json:"input"`
 }
 
-// GetInput returns getNoticesByInputIndexResponse.Input, and is useful for accessing the field via an interface.
-func (v *getNoticesByInputIndexResponse) GetInput() getNoticesByInputIndexInput { return v.Input }
-
-// getVouchersByInputIndexInput includes the requested fields of the GraphQL type Input.
-// The GraphQL type's documentation follows.
-//
-// Request submitted to the application to advance its state
-type getVouchersByInputIndexInput struct {
-	// Get vouchers from this particular input with support for pagination
-	Vouchers getVouchersByInputIndexInputVouchersVoucherConnection `json:"vouchers"`
-}
-
-// GetVouchers returns getVouchersByInputIndexInput.Vouchers, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexInput) GetVouchers() getVouchersByInputIndexInputVouchersVoucherConnection {
-	return v.Vouchers
-}
-
-// getVouchersByInputIndexInputVouchersVoucherConnection includes the requested fields of the GraphQL type VoucherConnection.
-// The GraphQL type's documentation follows.
-//
-// Pagination result
-type getVouchersByInputIndexInputVouchersVoucherConnection struct {
-	// Pagination entries returned for the current page
-	Edges []getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdge `json:"edges"`
-}
-
-// GetEdges returns getVouchersByInputIndexInputVouchersVoucherConnection.Edges, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexInputVouchersVoucherConnection) GetEdges() []getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdge {
-	return v.Edges
-}
-
-// getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdge includes the requested fields of the GraphQL type VoucherEdge.
-// The GraphQL type's documentation follows.
-//
-// Pagination entry
-type getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdge struct {
-	// Node instance
-	Node getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher `json:"node"`
-}
-
-// GetNode returns getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdge.Node, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdge) GetNode() getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher {
-	return v.Node
-}
-
-// getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher includes the requested fields of the GraphQL type Voucher.
-// The GraphQL type's documentation follows.
-//
-// Representation of a transaction that can be carried out on the base layer blockchain, such as a transfer of assets
-type getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher struct {
-	// Voucher index within the context of the input that produced it
-	Index int `json:"index"`
-	// Transaction destination address in Ethereum hex binary format (20 bytes), starting with '0x'
-	Destination string `json:"destination"`
-	// Transaction payload in Ethereum hex binary format, starting with '0x'
-	Payload string `json:"payload"`
-}
-
-// GetIndex returns getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher.Index, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher) GetIndex() int {
-	return v.Index
-}
-
-// GetDestination returns getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher.Destination, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher) GetDestination() string {
-	return v.Destination
-}
-
-// GetPayload returns getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher.Payload, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexInputVouchersVoucherConnectionEdgesVoucherEdgeNodeVoucher) GetPayload() string {
-	return v.Payload
-}
-
-// getVouchersByInputIndexResponse is returned by getVouchersByInputIndex on success.
-type getVouchersByInputIndexResponse struct {
-	// Get input based on its identifier
-	Input getVouchersByInputIndexInput `json:"input"`
-}
-
-// GetInput returns getVouchersByInputIndexResponse.Input, and is useful for accessing the field via an interface.
-func (v *getVouchersByInputIndexResponse) GetInput() getVouchersByInputIndexInput { return v.Input }
+// GetInput returns getOutputsByInputIndexResponse.Input, and is useful for accessing the field via an interface.
+func (v *getOutputsByInputIndexResponse) GetInput() getOutputsByInputIndexInput { return v.Input }
 
 // The query or mutation executed by getInputStatus.
 const getInputStatus_Operation = `
@@ -253,10 +166,10 @@ func getInputStatus(
 	return &data_, err_
 }
 
-// The query or mutation executed by getNoticesByInputIndex.
-const getNoticesByInputIndex_Operation = `
-query getNoticesByInputIndex ($index: Int!) {
-	input(index: $index) {
+// The query or mutation executed by getOutputsByInputIndex.
+const getOutputsByInputIndex_Operation = `
+query getOutputsByInputIndex ($inputIndex: Int!) {
+	input(index: $inputIndex) {
 		notices {
 			edges {
 				node {
@@ -269,64 +182,21 @@ query getNoticesByInputIndex ($index: Int!) {
 }
 `
 
-func getNoticesByInputIndex(
+func getOutputsByInputIndex(
 	ctx_ context.Context,
 	client_ graphql.Client,
-	index int,
-) (*getNoticesByInputIndexResponse, error) {
+	inputIndex int,
+) (*getOutputsByInputIndexResponse, error) {
 	req_ := &graphql.Request{
-		OpName: "getNoticesByInputIndex",
-		Query:  getNoticesByInputIndex_Operation,
-		Variables: &__getNoticesByInputIndexInput{
-			Index: index,
+		OpName: "getOutputsByInputIndex",
+		Query:  getOutputsByInputIndex_Operation,
+		Variables: &__getOutputsByInputIndexInput{
+			InputIndex: inputIndex,
 		},
 	}
 	var err_ error
 
-	var data_ getNoticesByInputIndexResponse
-	resp_ := &graphql.Response{Data: &data_}
-
-	err_ = client_.MakeRequest(
-		ctx_,
-		req_,
-		resp_,
-	)
-
-	return &data_, err_
-}
-
-// The query or mutation executed by getVouchersByInputIndex.
-const getVouchersByInputIndex_Operation = `
-query getVouchersByInputIndex ($index: Int!) {
-	input(index: $index) {
-		vouchers {
-			edges {
-				node {
-					index
-					destination
-					payload
-				}
-			}
-		}
-	}
-}
-`
-
-func getVouchersByInputIndex(
-	ctx_ context.Context,
-	client_ graphql.Client,
-	index int,
-) (*getVouchersByInputIndexResponse, error) {
-	req_ := &graphql.Request{
-		OpName: "getVouchersByInputIndex",
-		Query:  getVouchersByInputIndex_Operation,
-		Variables: &__getVouchersByInputIndexInput{
-			Index: index,
-		},
-	}
-	var err_ error
-
-	var data_ getVouchersByInputIndexResponse
+	var data_ getOutputsByInputIndexResponse
 	resp_ := &graphql.Response{Data: &data_}
 
 	err_ = client_.MakeRequest(

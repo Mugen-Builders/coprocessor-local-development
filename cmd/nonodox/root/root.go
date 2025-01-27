@@ -9,15 +9,18 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/configs"
+	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/internal/usecase"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/pkg/coprocessor_contracts"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/pkg/rollups_contracts"
 	"github.com/Mugen-Builders/cartesi-coprocessor-nonodox/tools"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/sha3"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -40,28 +43,27 @@ var (
 	}
 )
 
-var startupMessage = `
-NonodoX local development tool started
-
-Anvil running at ANVIL_HTTP_URL
-GraphQL polling at http://localhost:8080/graphql
-Coprocessor Adapter contract address COPROCESSOR_ADAPTER_ADDRESS
-Coprocessor application machine hash COPROCESSOR_MACHINE_HASH
-
-Press Ctrl+C to stop the application.
-`
-
 func init() {
 	Cmd.Flags().StringVar(&configPath, "config", "", "Path to the configuration file (required)")
 	if err := Cmd.MarkFlagRequired("config"); err != nil {
 		slog.Error("Failed to mark flag as required", "error", err)
 		os.Exit(1)
 	}
-
 	Cmd.PreRun = func(cmd *cobra.Command, args []string) {
 		configs.ConfigureLog(slog.LevelInfo)
 	}
 }
+
+var startupMessage = `
+NonodoX local development tool started
+
+Anvil running at ANVIL_HTTP_URL
+GraphQL server pooling at GRAPHQL_URL
+CoprocessorAdapter contract address: COPROCESSOR_ADAPTER_ADDRESS
+Coprocessor Machine Hash: COPROCESSOR_MACHINE_HASH
+
+Press Ctrl+C to stop the application.
+`
 
 func run() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -71,37 +73,70 @@ func run() {
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-signalChan
-		slog.Info("Received termination signal, shutting down gracefully...")
 		cancel()
-		_ = exec.Command("pkill", "nonodo").Run()
 	}()
 
 	group, ctx := errgroup.WithContext(ctx)
+
 	nonodo := exec.CommandContext(
 		ctx,
 		"nonodo",
 		"--disable-devnet",
-		"--rpc-url",
-		cfg.AnvilWsURL,
-		"--contracts-input-box-block",
-		cfg.AnvilInputBoxBlock,
+		"--rpc-url", cfg.AnvilWsURL,
+		"--contracts-input-box-block", cfg.AnvilInputBoxBlock,
 	)
 	notifyWriter := tools.NewNotifyWriter(io.Discard, "nonodo: ready")
 	nonodo.Stdout = notifyWriter
-	group.Go(nonodo.Run)
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		if err := nonodo.Run(); err != nil {
+			errCh <- err
+		}
+		close(errCh)
+	}()
 
 	select {
 	case <-notifyWriter.Ready():
+		time.Sleep(2 * time.Second)
 		message := strings.NewReplacer(
 			"ANVIL_HTTP_URL", cfg.AnvilHttpURL,
-			"COPROCESSOR_MACHINE_HASH", cfg.CoprocessorMachineHash,
+			"GRAPHQL_URL", "http://localhost:8080/graphql",
 			"COPROCESSOR_ADAPTER_ADDRESS", cfg.CoprocessorAdapterAddress,
+			"COPROCESSOR_MACHINE_HASH", cfg.CoprocessorMachineHash,
 		).Replace(startupMessage)
 		fmt.Println(message)
+	case err := <-errCh:
+		if err != nil {
+			slog.Error("Error running nonodo", "error", err)
+			cancel()
+		}
 	case <-ctx.Done():
-		slog.Error("Context canceled before nonodo became ready, make sure that all environment variables are set correctly")
-		return
+		slog.Info("Context canceled before nonodo became ready")
 	}
+
+	// Channels for inter-process communication
+	chann1 := make(chan coprocessor_contracts.MockCoprocessorTaskIssued, 100)
+	chann2 := make(chan rollups_contracts.IInputBoxInputAdded, 100)
+	chann3 := make(chan struct {
+		Event       rollups_contracts.IInputBoxInputAdded
+		PayloadHash common.Hash
+		MachineHash common.Hash
+	}, 100)
+	chann4 := make(chan struct {
+		Event       rollups_contracts.IInputBoxInputAdded
+		PayloadHash common.Hash
+		MachineHash common.Hash
+		Outputs     [][]byte
+	}, 100)
+
+	defer close(chann1)
+	defer close(chann2)
+	defer close(chann3)
+	defer close(chann4)
+
+	var inputsHash sync.Map
 
 	ethClient, opts, err := configs.SetupTransactor()
 	if err != nil {
@@ -109,142 +144,167 @@ func run() {
 		os.Exit(1)
 	}
 
-	inputsHash := make(map[common.Hash]bool)
-	chann1 := make(chan coprocessor_contracts.MockCoprocessorTaskIssued)
-	chann2 := make(chan rollups_contracts.IInputBoxInputAdded)
-	chann3 := make(chan struct {
-		Event       rollups_contracts.IInputBoxInputAdded
-		PayloadHash common.Hash
-	})
-	chann4 := make(chan struct {
-		Event          rollups_contracts.IInputBoxInputAdded
-		PayloadHash    common.Hash
-		MachineOutputs [][]byte
-	})
-
-	go func() {
-		reader, err := NewTaskReader()
+	// Task reader
+	group.Go(func() error {
+		reader, err := NewTaskReader(common.HexToAddress(cfg.MockCoprocessorAddress))
 		if err != nil {
-			slog.Error("Failed to set up task reader", "error", err)
-			os.Exit(1)
+			slog.Error("Failed to create task reader", "error", err)
+			cancel()
+			return err
 		}
-
-		if err := reader.GetTaskIssuedEvents(ctx, chann1); err != nil {
-			slog.Error("Error fetching tasks", "error", err)
-			os.Exit(1)
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
+				if err := reader.GetTaskIssuedEvents(ctx, chann1); err != nil {
+					slog.Error("Error reading tasks", "error", err)
+					cancel()
+					return err
+				}
+			}
 		}
+	})
 
+	// Input processing
+	group.Go(func() error {
+		instance, err := rollups_contracts.NewIInputBox(common.HexToAddress(cfg.InputBoxAddress), ethClient)
+		if err != nil {
+			slog.Error("Failed to create inputBox instance", "error", err)
+			return err
+		}
 		for {
 			select {
 			case task := <-chann1:
-				instance, err := rollups_contracts.NewIInputBox(
-					common.HexToAddress("0x59b22D57D4f067708AB0c00552767405926dc768"),
-					ethClient,
-				)
-				if err != nil {
-					slog.Error("Failed to create inputBox instance", "error", err)
-					os.Exit(1)
-				}
+				inputsHash.Store(crypto.Keccak256Hash(task.Input), true)
 
-				hash := sha3.NewLegacyKeccak256()
-				hash.Write(task.Input)
-				inputsHash[common.HexToHash(fmt.Sprintf("0x%x", hash.Sum(nil)))] = true
-
-				tx, err := instance.AddInput(
-					opts,
-					common.HexToAddress("0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e"),
-					task.Input,
-				)
+				_, err := instance.AddInput(opts, common.HexToAddress(cfg.DappAddress), task.Input)
 				if err != nil {
-					slog.Error("Failed to call addInput function", "error", err, "input", task.Input)
-					os.Exit(1)
+					slog.Error("Failed to call addInput function", "error", err)
+					continue
 				}
-				slog.Info("Input added", "dapp", "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e", "tx", tx.Hash().Hex())
 			case <-ctx.Done():
-				return
+				return nil
 			}
 		}
-	}()
+	})
 
-	go func() {
+	// Input reader
+	group.Go(func() error {
 		reader, err := NewInputReader()
 		if err != nil {
-			slog.Error("Failed to set up inputBox reader", "error", err)
-			os.Exit(1)
-		}
-		if err := reader.GetInputAddedEvents(ctx, chann2); err != nil {
-			slog.Error("Error fetching inputs", "error", err)
-			os.Exit(1)
+			slog.Error("Failed to create input reader", "error", err)
+			cancel()
+			return err
 		}
 		for {
 			select {
-			case event := <-chann2:
-				hash := sha3.NewLegacyKeccak256()
-				hash.Write(event.Input)
-				payloadHash := common.HexToHash(fmt.Sprintf("0x%x", hash.Sum(nil)))
-				if _, ok := inputsHash[payloadHash]; !ok {
-					slog.Error("Input not found", "input", event.Input)
+			case <-ctx.Done():
+				return nil
+			default:
+				if err := reader.GetInputAddedEvents(ctx, chann2); err != nil {
+					slog.Error("Error reading inputs", "error", err)
+					cancel()
+					return err
 				}
+			}
+		}
+	})
 
+	// Processing inputs
+	group.Go(func() error {
+		for {
+			select {
+			case event := <-chann2:
 				chann3 <- struct {
 					Event       rollups_contracts.IInputBoxInputAdded
 					PayloadHash common.Hash
-				}{Event: event, PayloadHash: payloadHash}
+					MachineHash common.Hash
+				}{
+					Event:       event,
+					PayloadHash: crypto.Keccak256Hash(event.Input),
+					MachineHash: common.HexToHash(cfg.CoprocessorMachineHash),
+				}
 			case <-ctx.Done():
-				return
+				return nil
 			}
 		}
-	}()
+	})
 
-	go func() {
+	// Outputs processing
+	group.Go(func() error {
 		findOutputsByIdUseCase, err := NewFindOutputsByIdUseCase("http://localhost:8080/graphql", nil)
 		if err != nil {
 			slog.Error("Failed to setup node reader", "error", err)
-			os.Exit(1)
+			return err
 		}
+		for {
+			select {
+			case data := <-chann3:
+				// Life is not easy :(
+				time.Sleep(1 * time.Second)
 
-		for data := range chann3 {
-			outputs, err := findOutputsByIdUseCase.Execute(ctx, int(data.Event.InputIndex.Int64()))
-			if err != nil {
-				slog.Error("Failed to find outputs by ID", "error", err)
-				os.Exit(1)
-			}
+				outputs, err := findOutputsByIdUseCase.Execute(ctx, int(data.Event.InputIndex.Int64()))
+				if err != nil {
+					if err == usecase.ErrNoOutputsFound {
+						slog.Warn("No outputs found", "inputIndex", data.Event.InputIndex)
+						continue
+					}
+					slog.Error("Failed to find outputs by ID", "error", err)
+				}
 
-			if len(outputs) > 0 {
-				chann4 <- struct {
-					Event          rollups_contracts.IInputBoxInputAdded
-					PayloadHash    common.Hash
-					MachineOutputs [][]byte
-				}{Event: data.Event, PayloadHash: data.PayloadHash, MachineOutputs: outputs}
+				if len(outputs) > 0 {
+					chann4 <- struct {
+						Event       rollups_contracts.IInputBoxInputAdded
+						PayloadHash common.Hash
+						MachineHash common.Hash
+						Outputs     [][]byte
+					}{
+						Event:       data.Event,
+						PayloadHash: data.PayloadHash,
+						MachineHash: data.MachineHash,
+						Outputs:     outputs,
+					}
+				}
+			case <-ctx.Done():
+				return nil
 			}
 		}
-	}()
+	})
 
-	for {
-		select {
-		case output := <-chann4:
-			instance, err := coprocessor_contracts.NewCoprocessorContracts(
-				common.HexToAddress(cfg.CoprocessorAdapterAddress),
-				ethClient,
-			)
-			if err != nil {
-				slog.Error("Failed to create coprocessor instance", "error", err)
-				return
-			}
-
-			tx, err := instance.CoprocessorCallbackOutputsOnly(
-				opts,
-				common.HexToHash(cfg.CoprocessorMachineHash),
-				output.PayloadHash,
-				output.MachineOutputs,
-			)
-			if err != nil {
-				slog.Error("Failed to call coprocessor callback function", "error", err, "outputs", output.MachineOutputs)
-				return
-			}
-			slog.Info("Outputs executed", "payload hash", output.PayloadHash, "tx", tx.Hash().Hex(), "outputs", output.MachineOutputs)
-		case <-ctx.Done():
-			return
+	// Coprocessor callback
+	group.Go(func() error {
+		instance, err := coprocessor_contracts.NewMockCoprocessor(common.HexToAddress(cfg.MockCoprocessorAddress), ethClient)
+		if err != nil {
+			slog.Error("Failed to create coprocessor instance", "error", err)
+			return err
 		}
+		for {
+			select {
+			case output := <-chann4:
+				slog.Info("Parameters", "machineHash", output.MachineHash, "payloadHash", output.PayloadHash, "outputs", output.Outputs, "callback", common.HexToAddress(cfg.CoprocessorAdapterAddress))
+				tx, err := instance.SolverCallbackOutputsOnly(
+					opts,
+					output.MachineHash,
+					output.PayloadHash,
+					output.Outputs,
+					common.HexToAddress(cfg.CoprocessorAdapterAddress),
+				)
+				if err != nil {
+					// if strings.Contains(err.Error(), "execution reverted") {
+					// 	slog.Warn("Execution reverted, make sure the CoprocessorAdapter address is correct")
+					// }
+					slog.Error("Failed to call coprocessor callback", "error", err)
+					continue
+				}
+				slog.Info("Outputs executed", "payload hash", output.PayloadHash, "tx", tx.Hash().Hex())
+			case <-ctx.Done():
+				return nil
+			}
+		}
+	})
+
+	if err := group.Wait(); err != nil {
+		slog.Error("Execution error", "error", err)
 	}
 }

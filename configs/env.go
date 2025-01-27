@@ -12,9 +12,12 @@ import (
 
 type Config struct {
 	AnvilWsURL                string
-	AnvilInputBoxBlock        string
+	DappAddress               string
 	AnvilHttpURL              string
+	InputBoxAddress           string
+	AnvilInputBoxBlock        string
 	CoprocessorMachineHash    string
+	MockCoprocessorAddress    string
 	CoprocessorAdapterAddress string
 }
 
@@ -72,10 +75,13 @@ func LoadConfig(path string) (*Config, error) {
 
 	envVars := &Config{
 		AnvilWsURL:                verifyEnv("ANVIL_WS_URL"),
-		AnvilInputBoxBlock:        verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
+		DappAddress:               "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
 		AnvilHttpURL:              verifyEnv("ANVIL_HTTP_URL"),
+		InputBoxAddress:           "0x59b22D57D4f067708AB0c00552767405926dc768",
+		AnvilInputBoxBlock:        verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
 		CoprocessorMachineHash:    verifyEnv("COPROCESSOR_MACHINE_HASH"),
 		CoprocessorAdapterAddress: verifyEnv("COPROCESSOR_ADAPTER_ADDRESS"),
+		MockCoprocessorAddress:    "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
 	}
 
 	return envVars, nil
