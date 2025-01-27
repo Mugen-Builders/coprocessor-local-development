@@ -59,8 +59,24 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@latest
 ```
 
-2. Run the application:
+2. Download the state file (.json) and start the anvil instance:
+
+```sh
+curl -O https://raw.githubusercontent.com/Mugen-Builders/cartesi-coprocessor-nonodox/refs/heads/main/anvil_state.json
+anvil --load-state anvil_state.json
+```
+
+3. Running the tool (w/ the binary):
 
 ```sh
 nonodox --config <filename>.toml
+```
+
+4. Running the tool (w/ the Docker):
+
+```sh
+docker run --rm \
+	-v $(pwd):/app -w /app \
+	ghcr.io/Mugen-Builders/cartesi-coprocessor-nonodox:latest \
+	--config <path-to-toml-file>
 ```
