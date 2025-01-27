@@ -275,7 +275,6 @@ func run() {
 		for {
 			select {
 			case output := <-chann4:
-				slog.Info("Parameters", "machineHash", output.MachineHash, "payloadHash", output.PayloadHash, "outputs", output.Outputs, "callback", common.HexToAddress(cfg.CoprocessorAdapterAddress))
 				tx, err := instance.SolverCallbackOutputsOnly(
 					opts,
 					output.MachineHash,
