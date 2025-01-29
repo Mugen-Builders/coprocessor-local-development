@@ -29,8 +29,8 @@ var (
 	cfg        *configs.Config
 	Cmd        = &cobra.Command{
 		Use:   "nonodox",
-		Short: "nonodox is a tool for local development of Cartesi coprocessor",
-		Long:  "This tool listens for input events, processes notices, and vouchers linked to an input, and executes them on-chain (anvil).",
+		Short: "nonodox is a tool for local development of Cartesi coprocessor applications",
+		Long:  "This tool listens for input events, processes notices linked to an input, and executes them on-chain (anvil).",
 		Run: func(cmd *cobra.Command, args []string) {
 			var err error
 			cfg, err = configs.LoadConfig(configPath)
