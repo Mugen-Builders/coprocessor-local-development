@@ -25,6 +25,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=./go.mod,target=./go.mod \
     go mod download -x
 
+RUN GOBIN=/bin go install github.com/calindra/nonodo@v1.2.8
+
 # This is the architecture you’re building for, which is passed in by the builder.
 # Placing it here allows the previous steps to be cached across architectures.
 ARG TARGETARCH
@@ -75,8 +77,11 @@ USER appuser
 # Copy the executable from the "build" stage.
 COPY --from=build /bin/app /bin/
 
+# Copy the executable from the build stage
+COPY --from=build /bin/nonodo /bin/nonodo
+
 # Expose the port that the application listens on.
-EXPOSE 8080
+EXPOSE 8080 5004
 
 # What the container should run when it is started.
 ENTRYPOINT [ "/bin/app" ]

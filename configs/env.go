@@ -16,9 +16,7 @@ type Config struct {
 	AnvilHttpURL              string
 	InputBoxAddress           string
 	AnvilInputBoxBlock        string
-	CoprocessorMachineHash    string
 	MockCoprocessorAddress    string
-	CoprocessorAdapterAddress string
 }
 
 func readTOML(name string) string {
@@ -79,8 +77,6 @@ func LoadConfig(path string) (*Config, error) {
 		AnvilHttpURL:              verifyEnv("ANVIL_HTTP_URL"),
 		InputBoxAddress:           "0x59b22D57D4f067708AB0c00552767405926dc768",
 		AnvilInputBoxBlock:        verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
-		CoprocessorMachineHash:    verifyEnv("COPROCESSOR_MACHINE_HASH"),
-		CoprocessorAdapterAddress: verifyEnv("COPROCESSOR_ADAPTER_ADDRESS"),
 		MockCoprocessorAddress:    "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
 	}
 

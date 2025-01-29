@@ -57,10 +57,7 @@ func init() {
 var startupMessage = `
 NoNodoX local development tool started
 
-Anvil running at ANVIL_HTTP_URL
 GraphQL server pooling at GRAPHQL_URL
-CoprocessorAdapter contract address: COPROCESSOR_ADAPTER_ADDRESS
-Coprocessor Machine Hash: COPROCESSOR_MACHINE_HASH
 
 Press Ctrl+C to stop the application.
 `
@@ -101,10 +98,7 @@ func run() {
 	case <-notifyWriter.Ready():
 		time.Sleep(2 * time.Second)
 		message := strings.NewReplacer(
-			"ANVIL_HTTP_URL", cfg.AnvilHttpURL,
 			"GRAPHQL_URL", "http://localhost:8080/graphql",
-			"COPROCESSOR_ADAPTER_ADDRESS", cfg.CoprocessorAdapterAddress,
-			"COPROCESSOR_MACHINE_HASH", cfg.CoprocessorMachineHash,
 		).Replace(startupMessage)
 		fmt.Println(message)
 	case err := <-errCh:
@@ -122,11 +116,13 @@ func run() {
 		Event       rollups_contracts.IInputBoxInputAdded
 		PayloadHash common.Hash
 		MachineHash common.Hash
+		Callback	common.Address
 	}, 100)
 	chann4 := make(chan struct {
 		Event       rollups_contracts.IInputBoxInputAdded
 		PayloadHash common.Hash
 		MachineHash common.Hash
+		Callback	common.Address
 		Outputs     [][]byte
 	}, 100)
 
@@ -173,7 +169,13 @@ func run() {
 		for {
 			select {
 			case task := <-chann1:
-				inputsHash.Store(crypto.Keccak256Hash(task.Input), true)
+				inputsHash.Store(crypto.Keccak256Hash(task.Input), struct {
+					MachineHash common.Hash
+					Callback    common.Address
+				}{
+					MachineHash: task.MachineHash,
+					Callback:    task.Callback,
+				})
 
 				_, err := instance.AddInput(opts, common.HexToAddress(cfg.DappAddress), task.Input)
 				if err != nil {
@@ -211,14 +213,31 @@ func run() {
 		for {
 			select {
 			case event := <-chann2:
+				rawData, ok := inputsHash.Load(crypto.Keccak256Hash(event.Input))
+				if !ok {
+					slog.Warn("Input not found", "input", crypto.Keccak256Hash(event.Input))
+					continue
+				}
+
+				data, ok := rawData.(struct {
+					MachineHash common.Hash
+					Callback    common.Address
+				})
+				if !ok {
+					slog.Error("Failed to cast input data")
+					continue
+				}
+
 				chann3 <- struct {
 					Event       rollups_contracts.IInputBoxInputAdded
 					PayloadHash common.Hash
 					MachineHash common.Hash
+					Callback	common.Address
 				}{
 					Event:       event,
 					PayloadHash: crypto.Keccak256Hash(event.Input),
-					MachineHash: common.HexToHash(cfg.CoprocessorMachineHash),
+					MachineHash: data.MachineHash,
+					Callback:    data.Callback,
 				}
 			case <-ctx.Done():
 				return nil
@@ -252,11 +271,13 @@ func run() {
 						Event       rollups_contracts.IInputBoxInputAdded
 						PayloadHash common.Hash
 						MachineHash common.Hash
+						Callback	common.Address
 						Outputs     [][]byte
 					}{
 						Event:       data.Event,
 						PayloadHash: data.PayloadHash,
 						MachineHash: data.MachineHash,
+						Callback:    data.Callback,
 						Outputs:     outputs,
 					}
 				}
@@ -280,7 +301,7 @@ func run() {
 					output.MachineHash,
 					output.PayloadHash,
 					output.Outputs,
-					common.HexToAddress(cfg.CoprocessorAdapterAddress),
+					output.Callback,
 				)
 				if err != nil {
 					if strings.Contains(err.Error(), "execution reverted") {

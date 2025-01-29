@@ -47,10 +47,6 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 > ws_url = "ws://127.0.0.1:8545"
 > private_key = ""
 > input_box_block = "7"
->
-> [coprocessor]
-> machine_hash = ""
-> adapter_address = ""
 > ```
 
 1. Install the package:
@@ -87,6 +83,7 @@ nonodox --config <filename>.toml
 ```sh
 docker run --rm \
 	-v $(pwd):/app -w /app \
-	ghcr.io/mugen-builders/cartesi-coprocessor-nonodox:latest \
+	-p 8545:8545 \
+	nonodox:latest \
 	--config <path-to-toml-file>
 ```
