@@ -98,7 +98,7 @@ func run() {
 	case <-notifyWriter.Ready():
 		time.Sleep(2 * time.Second)
 		message := strings.NewReplacer(
-			"GRAPHQL_URL", "http://localhost:8080/graphql",
+			"GRAPHQL_URL", "http://0.0.0.0:8080/graphql",
 		).Replace(startupMessage)
 		fmt.Println(message)
 	case err := <-errCh:
