@@ -56,7 +56,6 @@ func init() {
 
 var startupMessage = `
 NoNodoX local development tool started
-
 GraphQL server pooling at GRAPHQL_URL
 
 Press Ctrl+C to stop the application.
@@ -77,7 +76,7 @@ func run() {
 
 	nonodo := exec.CommandContext(
 		ctx,
-		"nonodo",
+		"/bin/nonodo",
 		"--disable-devnet",
 		"--rpc-url", cfg.AnvilWsURL,
 		"--contracts-input-box-block", cfg.AnvilInputBoxBlock,
@@ -98,7 +97,7 @@ func run() {
 	case <-notifyWriter.Ready():
 		time.Sleep(2 * time.Second)
 		message := strings.NewReplacer(
-			"GRAPHQL_URL", "http://0.0.0.0:8080/graphql",
+			"GRAPHQL_URL", cfg.GraphQLURL,
 		).Replace(startupMessage)
 		fmt.Println(message)
 	case err := <-errCh:
@@ -116,13 +115,13 @@ func run() {
 		Event       rollups_contracts.IInputBoxInputAdded
 		PayloadHash common.Hash
 		MachineHash common.Hash
-		Callback	common.Address
+		Callback    common.Address
 	}, 100)
 	chann4 := make(chan struct {
 		Event       rollups_contracts.IInputBoxInputAdded
 		PayloadHash common.Hash
 		MachineHash common.Hash
-		Callback	common.Address
+		Callback    common.Address
 		Outputs     [][]byte
 	}, 100)
 
@@ -232,7 +231,7 @@ func run() {
 					Event       rollups_contracts.IInputBoxInputAdded
 					PayloadHash common.Hash
 					MachineHash common.Hash
-					Callback	common.Address
+					Callback    common.Address
 				}{
 					Event:       event,
 					PayloadHash: crypto.Keccak256Hash(event.Input),
@@ -246,7 +245,7 @@ func run() {
 	})
 
 	group.Go(func() error {
-		findOutputsByIdUseCase, err := NewFindOutputsByIdUseCase("http://localhost:8080/graphql", nil)
+		findOutputsByIdUseCase, err := NewFindOutputsByIdUseCase(cfg.GraphQLURL, nil)
 		if err != nil {
 			slog.Error("Failed to setup node reader", "error", err)
 			return err
@@ -254,7 +253,6 @@ func run() {
 		for {
 			select {
 			case data := <-chann3:
-				// Life is not easy :(
 				time.Sleep(1 * time.Second)
 
 				outputs, err := findOutputsByIdUseCase.Execute(ctx, int(data.Event.InputIndex.Int64()))
@@ -271,7 +269,7 @@ func run() {
 						Event       rollups_contracts.IInputBoxInputAdded
 						PayloadHash common.Hash
 						MachineHash common.Hash
-						Callback	common.Address
+						Callback    common.Address
 						Outputs     [][]byte
 					}{
 						Event:       data.Event,

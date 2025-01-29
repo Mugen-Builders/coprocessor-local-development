@@ -11,12 +11,13 @@ import (
 )
 
 type Config struct {
-	AnvilWsURL                string
-	DappAddress               string
-	AnvilHttpURL              string
-	InputBoxAddress           string
-	AnvilInputBoxBlock        string
-	MockCoprocessorAddress    string
+	GraphQLURL             string
+	AnvilWsURL             string
+	DappAddress            string
+	AnvilHttpURL           string
+	InputBoxAddress        string
+	AnvilInputBoxBlock     string
+	MockCoprocessorAddress string
 }
 
 func readTOML(name string) string {
@@ -72,12 +73,13 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	envVars := &Config{
-		AnvilWsURL:                verifyEnv("ANVIL_WS_URL"),
-		DappAddress:               "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
-		AnvilHttpURL:              verifyEnv("ANVIL_HTTP_URL"),
-		InputBoxAddress:           "0x59b22D57D4f067708AB0c00552767405926dc768",
-		AnvilInputBoxBlock:        verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
-		MockCoprocessorAddress:    "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+		AnvilWsURL:             verifyEnv("ANVIL_WS_URL"),
+		DappAddress:            "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
+		AnvilHttpURL:           verifyEnv("ANVIL_HTTP_URL"),
+		InputBoxAddress:        "0x59b22D57D4f067708AB0c00552767405926dc768",
+		AnvilInputBoxBlock:     verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
+		MockCoprocessorAddress: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+		GraphQLURL:             "http://0.0.0.0:8080/graphql",
 	}
 
 	return envVars, nil
