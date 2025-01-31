@@ -77,5 +77,3 @@ anvil --load-state anvil_state.json
 ```sh
 nonodox --config <filename>.toml
 ```
-
-docker run --rm -v $(pwd):/app -w /app -p 5004:5004 nonodox:latest --config Config.toml
