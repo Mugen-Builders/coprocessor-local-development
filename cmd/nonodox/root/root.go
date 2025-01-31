@@ -76,7 +76,7 @@ func run() {
 
 	nonodo := exec.CommandContext(
 		ctx,
-		"/bin/nonodo",
+		"nonodo",
 		"--disable-devnet",
 		"--rpc-url", cfg.AnvilWsURL,
 		"--contracts-input-box-block", cfg.AnvilInputBoxBlock,
