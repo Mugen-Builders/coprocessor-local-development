@@ -17,7 +17,7 @@ type Config struct {
 	AnvilHttpURL           string
 	InputBoxAddress        string
 	AnvilInputBoxBlock     string
-	MockCoprocessorAddress string
+	CoprocessorMockAddress string
 }
 
 func readTOML(name string) string {
@@ -78,7 +78,7 @@ func LoadConfig(path string) (*Config, error) {
 		AnvilHttpURL:           verifyEnv("ANVIL_HTTP_URL"),
 		InputBoxAddress:        "0x59b22D57D4f067708AB0c00552767405926dc768",
 		AnvilInputBoxBlock:     verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
-		MockCoprocessorAddress: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+		CoprocessorMockAddress: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
 		GraphQLURL:             "http://0.0.0.0:8080/graphql",
 	}
 

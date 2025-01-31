@@ -72,6 +72,9 @@ curl -O https://raw.githubusercontent.com/Mugen-Builders/cartesi-coprocessor-non
 anvil --load-state anvil_state.json
 ```
 
+> [!WARNING]
+> before running the command below, please make sure that you have deployed the CoprocesorAdapter instance, passing `0x68B1D87F95878fE05B998F19b66F4baba5De1aed` as the coprocessor address to its constructor.
+
 3. Running the tool (w/ the binary):
 
 ```sh

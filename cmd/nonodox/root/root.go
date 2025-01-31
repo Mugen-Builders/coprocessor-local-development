@@ -65,6 +65,11 @@ func run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	if _, err := exec.LookPath("nonodo"); err != nil {
+		slog.Error("nonodo binary not available, please install this and try again", "error", err)
+		os.Exit(1)
+	}
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -139,7 +144,7 @@ func run() {
 	}
 
 	group.Go(func() error {
-		reader, err := NewTaskReader(common.HexToAddress(cfg.MockCoprocessorAddress))
+		reader, err := NewTaskReader(common.HexToAddress(cfg.CoprocessorMockAddress))
 		if err != nil {
 			slog.Error("Failed to create task reader", "error", err)
 			cancel()
@@ -286,7 +291,7 @@ func run() {
 	})
 
 	group.Go(func() error {
-		instance, err := coprocessor_contracts.NewMockCoprocessor(common.HexToAddress(cfg.MockCoprocessorAddress), ethClient)
+		instance, err := coprocessor_contracts.NewMockCoprocessor(common.HexToAddress(cfg.CoprocessorMockAddress), ethClient)
 		if err != nil {
 			slog.Error("Failed to create coprocessor instance", "error", err)
 			return err
