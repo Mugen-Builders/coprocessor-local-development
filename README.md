@@ -4,10 +4,10 @@
 </p>
 <br>
 <div align="center">
-    <i>A tool for developing Cartesi coprocessors</i>
+    <i>A tool for developing Cartesi Coprocessor applications</i>
 </div>
 <div align="center">
-<b>This tool aims to be an iterative development environment for Cartesi coprocessors</b>
+<b>This tool aims to be an iterative development environment for Cartesi Coprocessor applications</b>
 </div>
 <br>
 <p align="center">
@@ -45,7 +45,7 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 > [anvil]
 > http_url = "http://127.0.0.1:8545"
 > ws_url = "ws://127.0.0.1:8545"
-> private_key = ""
+> private_key = "<private-key-without-0x>" 
 > input_box_block = "7"
 > ```
 
