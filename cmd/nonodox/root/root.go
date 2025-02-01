@@ -220,7 +220,6 @@ func run() {
 				rawData, ok := inputsHash.Load(crypto.Keccak256Hash(event.Input))
 				if !ok {
 					slog.Warn("Input not found", "input", crypto.Keccak256Hash(event.Input))
-					continue
 				}
 
 				data, ok := rawData.(struct {
@@ -229,7 +228,6 @@ func run() {
 				})
 				if !ok {
 					slog.Error("Failed to cast input data")
-					continue
 				}
 
 				chann3 <- struct {
