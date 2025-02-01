@@ -73,7 +73,7 @@ anvil --load-state anvil_state.json
 ```
 
 > [!CAUTION]
-> Before running the command below, please make sure that you have deployed the CoprocesorAdapter instance, passing `0x68B1D87F95878fE05B998F19b66F4baba5De1aed` as the coprocessor address to its constructor
+> Before running the command below, please make sure that you have deployed the CoprocesorAdapter instance, passing `0x998abeb3E57409262aE5b751f60747921B33613E` as the coprocessor address to its constructor
 
 3. Running the tool (w/ the binary):
 
