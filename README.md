@@ -42,7 +42,7 @@ There are two installation options for the tool: one involves installing the bin
 
 - Install the binary:
 
-1. Go to latest release page and download the archive for your host platform;
+1. Go to latest [release page](https://github.com/Mugen-Builders/cartesi-coprocessor-nonodox/releases) and download the archive for your host platform;
 2. Extract the archive;
 3. Add the binary's path to the system PATH so that it can be initialized using just the `nonodox` command;
 
