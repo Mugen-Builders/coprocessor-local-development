@@ -30,12 +30,12 @@ var setFindOutputsByIdUseCase = wire.NewSet(
 	usecase.NewFindOutputsByIdUseCase,
 )
 
-func NewInputReader() (*evm_reader.InputReader, error) {
+func NewInputReader(cfg *configs.Config) (*evm_reader.InputReader, error) {
 	wire.Build(setInputReader)
 	return nil, nil
 }
 
-func NewTaskReader(mockCoprocessorAddress common.Address) (*evm_reader.TaskReader, error) {
+func NewTaskReader(cfg *configs.Config, mockCoprocessorAddress common.Address) (*evm_reader.TaskReader, error) {
 	wire.Build(setTaskReader)
 	return nil, nil
 }

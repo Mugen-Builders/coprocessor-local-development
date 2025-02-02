@@ -1,6 +1,6 @@
 .PHONY: gen
 gen:
-	go generate ./...
+	 go generate -x ./...
 
 .PHONY: build
 build:

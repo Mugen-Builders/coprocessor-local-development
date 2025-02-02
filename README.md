@@ -20,6 +20,7 @@
 - [Overview](#overview)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
   - [Running](#running)
 
 ## Overview
@@ -33,23 +34,24 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 ### Prerequisites
 
 1. [Foundry](https://book.getfoundry.sh/getting-started/installation)
-2. [Golang](https://go.dev/doc/install)
-3. [Nonodo](https://github.com/Calindra/nonodo?tab=readme-ov-file#installation)
+2. [Nonodo](https://github.com/Calindra/nonodo?tab=readme-ov-file#installation)
 
-### Running
+### Installation
 
-> [!NOTE]
-> Before running the command below, ensure you have created a `.toml` file and set the **environment variables** correctly. Below is the structure of the content that should be included in the file:
->
-> ```toml
-> [anvil]
-> http_url = "http://127.0.0.1:8545"
-> ws_url = "ws://127.0.0.1:8545"
-> private_key = "<private-key-without-0x>" 
-> input_box_block = "7"
-> ```
+- Install the binary:
 
-1. Install the package:
+1. Go to latest release page and download the archive for your host platform;
+2. Extract the archive;
+3. Run <> and you are done!
+
+Quick example of running <> on any Linux amd64:
+
+```bash
+
+```
+
+
+- Install the package with golang:
 
 ```sh
 go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@latest
@@ -65,7 +67,9 @@ go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@lat
 > export PATH="$HOME/go/bin:$PATH"
 > ```
 
-2. Download the state file (.json) and start the anvil instance:
+### Running
+
+1. Download the state file (.json) and start the anvil instance:
 
 ```sh
 curl -O https://raw.githubusercontent.com/Mugen-Builders/cartesi-coprocessor-nonodox/refs/heads/main/anvil_state.json
@@ -75,8 +79,19 @@ anvil --load-state anvil_state.json
 > [!CAUTION]
 > Before running the command below, please make sure that you have deployed the CoprocesorAdapter instance, passing `0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE` as the coprocessor address to its constructor
 
-3. Running the tool (w/ the binary):
+2. Running the tool:
 
 ```sh
-nonodox --config <filename>.toml
+nonodox
 ```
+
+> [!NOTE]
+> Before running the command below, ensure you have created a `.toml` file and set the **environment variables** correctly. Below is the structure of the content that should be included in the file:
+>
+> ```toml
+> [anvil]
+> http_url = "http://127.0.0.1:8545"
+> ws_url = "ws://127.0.0.1:8545"
+> private_key = "<private-key-without-0x>" 
+> input_box_block = "7"
+> ```

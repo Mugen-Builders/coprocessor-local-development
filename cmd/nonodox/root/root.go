@@ -32,11 +32,24 @@ var (
 		Short: "nonodox is a tool for local development of Cartesi coprocessor applications",
 		Long:  "This tool listens for input events, processes notices linked to an input, and executes them on-chain (anvil).",
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			cfg, err = configs.LoadConfig(configPath)
-			if err != nil {
-				slog.Error("Failed to load configuration file", "error", err)
-				os.Exit(1)
+			if configPath == "" {
+				cfg = &configs.Config{
+					AnvilWsURL:             "ws://localhost:8545",
+					GraphQLURL:             "http://localhost:8080/graphql",
+					DappAddress:            "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
+					AnvilHttpURL:           "http://localhost:8545",
+					AnvilPrivateKey:        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+					InputBoxAddress:        "0x59b22D57D4f067708AB0c00552767405926dc768",
+					AnvilInputBoxBlock:     "7",
+					CoprocessorMockAddress: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+				}
+			} else {
+				var err error
+				cfg, err = configs.LoadConfig(configPath)
+				if err != nil {
+					slog.Error("Failed to load configuration file", "error", err)
+					os.Exit(1)
+				}
 			}
 			run()
 		},
@@ -45,10 +58,7 @@ var (
 
 func init() {
 	Cmd.Flags().StringVar(&configPath, "config", "", "Path to the configuration file (required)")
-	if err := Cmd.MarkFlagRequired("config"); err != nil {
-		slog.Error("Failed to mark flag as required", "error", err)
-		os.Exit(1)
-	}
+
 	Cmd.PreRun = func(cmd *cobra.Command, args []string) {
 		configs.ConfigureLog(slog.LevelInfo)
 	}
@@ -56,7 +66,6 @@ func init() {
 
 var startupMessage = `
 NoNodoX local development tool started
-GraphQL server pooling at GRAPHQL_URL
 
 Press Ctrl+C to stop the application.
 `
@@ -100,11 +109,8 @@ func run() {
 
 	select {
 	case <-notifyWriter.Ready():
-		time.Sleep(2 * time.Second)
-		message := strings.NewReplacer(
-			"GRAPHQL_URL", cfg.GraphQLURL,
-		).Replace(startupMessage)
-		fmt.Println(message)
+		time.Sleep(1 * time.Second)
+		fmt.Println(startupMessage)
 	case err := <-errCh:
 		if err != nil {
 			slog.Error("Error running nonodo", "error", err)
@@ -137,14 +143,14 @@ func run() {
 
 	var inputsHash sync.Map
 
-	ethClient, opts, err := configs.SetupTransactor()
+	ethClient, opts, err := configs.SetupTransactor(cfg)
 	if err != nil {
 		slog.Error("Failed to set up transactor", "error", err)
 		os.Exit(1)
 	}
 
 	group.Go(func() error {
-		reader, err := NewTaskReader(common.HexToAddress(cfg.CoprocessorMockAddress))
+		reader, err := NewTaskReader(cfg, common.HexToAddress(cfg.CoprocessorMockAddress))
 		if err != nil {
 			slog.Error("Failed to create task reader", "error", err)
 			cancel()
@@ -193,7 +199,7 @@ func run() {
 	})
 
 	group.Go(func() error {
-		reader, err := NewInputReader()
+		reader, err := NewInputReader(cfg)
 		if err != nil {
 			slog.Error("Failed to create input reader", "error", err)
 			cancel()

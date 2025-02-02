@@ -18,8 +18,8 @@ import (
 
 // Injectors from wire.go:
 
-func NewInputReader() (*evm_reader.InputReader, error) {
-	client, err := configs.SetupTransactorWS()
+func NewInputReader(cfg2 *configs.Config) (*evm_reader.InputReader, error) {
+	client, err := configs.SetupTransactorWS(cfg2)
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +30,8 @@ func NewInputReader() (*evm_reader.InputReader, error) {
 	return inputReader, nil
 }
 
-func NewTaskReader(mockCoprocessorAddress common.Address) (*evm_reader.TaskReader, error) {
-	client, err := configs.SetupTransactorWS()
+func NewTaskReader(cfg2 *configs.Config, mockCoprocessorAddress common.Address) (*evm_reader.TaskReader, error) {
+	client, err := configs.SetupTransactorWS(cfg2)
 	if err != nil {
 		return nil, err
 	}
