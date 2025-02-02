@@ -38,18 +38,13 @@ This is an iterative tool designed to accelerate the "debugging" and "developmen
 
 ### Installation
 
+There are two installation options for the tool: one involves installing the binary according to the architectures available on the releases page, and the other uses Golang to install the package. Choose one of these options to proceed.
+
 - Install the binary:
 
 1. Go to latest release page and download the archive for your host platform;
 2. Extract the archive;
-3. Run <> and you are done!
-
-Quick example of running <> on any Linux amd64:
-
-```bash
-
-```
-
+3. Add the binary's path to the system PATH so that it can be initialized using just the `nonodox` command;
 
 - Install the package with golang:
 
@@ -86,7 +81,7 @@ nonodox
 ```
 
 > [!NOTE]
-> Before running the command below, ensure you have created a `.toml` file and set the **environment variables** correctly. Below is the structure of the content that should be included in the file:
+> If you wish to make any customizations to the tool's execution environment, you can use the `--config` flag along with the path to a `.toml` file, which should contain the following variables:
 >
 > ```toml
 > [anvil]
