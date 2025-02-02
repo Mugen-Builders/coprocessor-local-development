@@ -72,5 +72,5 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
+          config: ../../.goreleaser.yml
           args: release --clean
-          workdir: ./cmd/nonodox
