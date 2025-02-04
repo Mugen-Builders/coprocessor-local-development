@@ -67,6 +67,10 @@ func init() {
 var startupMessage = `
 NoNodoX local development tool started
 
+Anvil Http URL: ANVIL_HTTP_URL
+Anvil WebSocket URL: ANVIL_WS_URL
+Task Issuer address: COPROCESSOR_MOCK_ADDRESS
+
 Press Ctrl+C to stop the application.
 `
 
@@ -110,7 +114,12 @@ func run() {
 	select {
 	case <-notifyWriter.Ready():
 		time.Sleep(1 * time.Second)
-		fmt.Println(startupMessage)
+		message := strings.NewReplacer(
+			"ANVIL_HTTP_URL", cfg.AnvilHttpURL,
+			"ANVIL_WS_URL", cfg.AnvilWsURL,
+			"COPROCESSOR_MOCK_ADDRESS", cfg.CoprocessorMockAddress,
+		).Replace(startupMessage)
+		fmt.Println(message)
 	case err := <-errCh:
 		if err != nil {
 			slog.Error("Error running nonodo", "error", err)
