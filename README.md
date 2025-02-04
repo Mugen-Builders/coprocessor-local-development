@@ -64,17 +64,22 @@ go install github.com/Mugen-Builders/cartesi-coprocessor-nonodox/cmd/nonodox@lat
 
 ### Running
 
-1. Download the state file (.json) and start the anvil instance:
+1. Download the state file (.json):
+
+```bash
+curl -O https://raw.githubusercontent.com/Mugen-Builders/cartesi-coprocessor-nonodox/refs/heads/main/anvil_state.json
+```
+
+2. Start the anvil instance:
 
 ```sh
-curl -O https://raw.githubusercontent.com/Mugen-Builders/cartesi-coprocessor-nonodox/refs/heads/main/anvil_state.json
 anvil --load-state anvil_state.json
 ```
 
 > [!CAUTION]
 > Before running the command below, please make sure that you have deployed the CoprocesorAdapter instance, passing `0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE` as the coprocessor address to its constructor
 
-2. Running the tool:
+3. Running the tool:
 
 ```sh
 nonodox
