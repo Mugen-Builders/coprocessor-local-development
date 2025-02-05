@@ -29,7 +29,7 @@ var (
 	cfg        *configs.Config
 	Cmd        = &cobra.Command{
 		Use:   "nonodox",
-		Short: "nonodox is a tool for local development of Cartesi coprocessor applications",
+		Short: "NoNodox is a tool for local development of Cartesi coprocessor applications",
 		Long:  "This tool listens for input events, processes notices linked to an input, and executes them on-chain (anvil).",
 		Run: func(cmd *cobra.Command, args []string) {
 			if configPath == "" {
@@ -40,6 +40,7 @@ var (
 					AnvilHttpURL:           "http://localhost:8545",
 					AnvilPrivateKey:        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 					InputBoxAddress:        "0x59b22D57D4f067708AB0c00552767405926dc768",
+					NonodoHttpPort:         "8081",
 					AnvilInputBoxBlock:     "7",
 					CoprocessorMockAddress: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
 				}
@@ -69,6 +70,7 @@ NoNodoX local development tool started
 
 Anvil Http URL: ANVIL_HTTP_URL
 Anvil WebSocket URL: ANVIL_WS_URL
+GraphQL Playground: GRAPHQL_PLAYGROUND_URL
 Task Issuer address: COPROCESSOR_MOCK_ADDRESS
 
 Press Ctrl+C to stop the application.
@@ -98,6 +100,7 @@ func run() {
 		"--disable-devnet",
 		"--rpc-url", cfg.AnvilWsURL,
 		"--contracts-input-box-block", cfg.AnvilInputBoxBlock,
+		"--http-port", cfg.NonodoHttpPort,
 	)
 	notifyWriter := tools.NewNotifyWriter(io.Discard, "nonodo: ready")
 	nonodo.Stdout = notifyWriter
@@ -118,6 +121,7 @@ func run() {
 			"ANVIL_HTTP_URL", cfg.AnvilHttpURL,
 			"ANVIL_WS_URL", cfg.AnvilWsURL,
 			"COPROCESSOR_MOCK_ADDRESS", cfg.CoprocessorMockAddress,
+			"GRAPHQL_PLAYGROUND_URL", fmt.Sprintf("http://localhost:%s/graphql", cfg.NonodoHttpPort),
 		).Replace(startupMessage)
 		fmt.Println(message)
 	case err := <-errCh:

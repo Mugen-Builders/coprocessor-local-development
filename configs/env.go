@@ -15,6 +15,7 @@ type Config struct {
 	AnvilWsURL             string
 	DappAddress            string
 	AnvilHttpURL           string
+	NonodoHttpPort         string
 	AnvilPrivateKey        string
 	InputBoxAddress        string
 	AnvilInputBoxBlock     string
@@ -74,14 +75,15 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	envVars := &Config{
+		GraphQLURL:             fmt.Sprintf("http://0.0.0.0:%v/graphql", verifyEnv("NONODO_HTTP_PORT")),
 		AnvilWsURL:             verifyEnv("ANVIL_WS_URL"),
 		DappAddress:            "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
 		AnvilHttpURL:           verifyEnv("ANVIL_HTTP_URL"),
+		NonodoHttpPort:         verifyEnv("NONODO_HTTP_PORT"),
 		InputBoxAddress:        "0x59b22D57D4f067708AB0c00552767405926dc768",
-		AnvilInputBoxBlock:     verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
 		AnvilPrivateKey:        verifyEnv("ANVIL_PRIVATE_KEY"),
+		AnvilInputBoxBlock:     verifyEnv("ANVIL_INPUT_BOX_BLOCK"),
 		CoprocessorMockAddress: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
-		GraphQLURL:             "http://0.0.0.0:8080/graphql",
 	}
 
 	return envVars, nil
