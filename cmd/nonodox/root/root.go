@@ -35,7 +35,7 @@ var (
 			if configPath == "" {
 				cfg = &configs.Config{
 					AnvilWsURL:             "ws://localhost:8545",
-					GraphQLURL:             "http://localhost:8080/graphql",
+					GraphQLURL:             "http://localhost:8081/graphql",
 					DappAddress:            "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
 					AnvilHttpURL:           "http://localhost:8545",
 					AnvilPrivateKey:        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
